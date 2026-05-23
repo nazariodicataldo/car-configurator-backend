@@ -3,18 +3,24 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable(['name', 'category', 'description'])]
 class Optional extends Model
 {
+    use HasUuids;
+    
     public function setups(): BelongsToMany
     {
-        return $this->belongsToMany(Setup::class)->using(OptionalSetup::class)->withPivot([
-            'price',
-            'is_included',
-        ]);
+        return $this->belongsToMany(Setup::class, 'optional_setups')
+            ->withPivot(['price', 'is_included']);
+    }
+
+    public function configurations(): BelongsToMany
+    {
+        return $this->belongsToMany(Configuration::class, 'configuration_optionals');
     }
 
     public function compatibilyRules(): BelongsToMany
@@ -36,5 +42,11 @@ class Optional extends Model
             'optional_b_id',
             'optional_a_id',
         );
+    }
+
+    // Union delle regole di validazione
+    public function allCompatibilityRules()
+    {
+        return $this->compatibilyRules->merge($this->compatibleWithMe);
     }
 }

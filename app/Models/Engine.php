@@ -23,6 +23,8 @@ class Engine extends Model
 
     public function vehicles(): BelongsToMany
     {
-        return $this->belongsToMany(Vehicle::class)->using(EngineVehicle::class)->withPivot(['price']);
+        return $this->belongsToMany(Vehicle::class, 'engine_vehicles')
+            ->using(EngineVehicle::class)
+            ->withPivot(['price']);
     }
 }

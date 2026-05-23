@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignUuid('vehicle_id')->constrained('vehicles')->cascadeOnDelete();
             $table->decimal('price', 10, 2);
             $table->timestamps();
+            $table->unique(['color_id', 'vehicle_id']);
         });
     }
 

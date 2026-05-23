@@ -13,7 +13,6 @@ return new class extends Migration {
         Schema::create('configurations', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name');
-            $table->decimal('total_price', 12, 2);
             $table
                 ->foreignUuid('user_id')
                 ->constrained('users')
@@ -22,22 +21,23 @@ return new class extends Migration {
                 ->foreignUuid('vehicle_id')
                 ->constrained('vehicles')
                 ->nullOnDelete();
+            $table->decimal('vehicle_price', 10, 2);
             $table
-                ->foreignUuid('engine_vehicle_id')
-                ->constrained('engine_vehicles')
+                ->foreignUuid('engine_id')
+                ->constrained('engines')
                 ->nullOnDelete();
+            $table->decimal('engine_price', 10, 2);
             $table
-                ->foreignUuid('setup_vehicle_id')
-                ->constrained('setup_vehicles')
+                ->foreignUuid('setup_id')
+                ->constrained('setups')
                 ->nullOnDelete();
-            /* $table
-                ->foreignUuid('configuration_optional_id')
-                ->constrained('configuration_optionals')
-                ->nullOnDelete(); */
+            $table->decimal('setup_price', 10, 2);
             $table
-                ->foreignUuid('color_vehicle_id')
-                ->constrained('color_vehicles')
+                ->foreignUuid('color_id')
+                ->constrained('colors')
                 ->nullOnDelete();
+
+            $table->decimal('color_price', 10, 2);
             /* $table
                 ->foreignUuid('vehicles_wheel_id')
                 ->constrained('vehicles_wheels')

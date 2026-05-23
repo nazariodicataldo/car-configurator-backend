@@ -30,17 +30,23 @@ class Vehicle extends Model
 
     public function engines(): BelongsToMany
     {
-        return $this->belongsToMany(Engine::class)->using(EngineVehicle::class)->withPivot(['price']);
+        return $this->belongsToMany(Engine::class, 'engine_vehicles')
+            ->using(EngineVehicle::class)
+            ->withPivot(['price']);
     }
 
     public function setups(): BelongsToMany
     {
-        return $this->belongsToMany(Setup::class)->using(SetupVehicle::class)->withPivot(['price']);
+        return $this->belongsToMany(Setup::class, 'setup_vehicles')
+            ->using(SetupVehicle::class)
+            ->withPivot(['price']);
     }
 
     public function colors(): BelongsToMany
     {
-        return $this->belongsToMany(Color::class)->using(ColorVehicle::class)->withPivot(['price']);
+        return $this->belongsToMany(Color::class, 'color_vehicles')
+            ->using(ColorVehicle::class)
+            ->withPivot(['price']);
     }
 
     public function configurations(): HasMany

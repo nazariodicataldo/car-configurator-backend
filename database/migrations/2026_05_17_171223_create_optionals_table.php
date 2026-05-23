@@ -13,7 +13,12 @@ return new class extends Migration {
         Schema::create('optionals', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name')->unique();
-            $table->enum('category', ['alimentazione', 'sicurezza', 'comodità', 'accessori']);
+            $table->enum('category', [
+                'alimentazione',
+                'sicurezza',
+                'comodità',
+                'accessori',
+            ]);
             $table->text('description')->nullable();
             $table->timestamps();
         });

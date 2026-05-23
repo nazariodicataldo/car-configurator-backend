@@ -3,26 +3,31 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 #[
     Fillable([
         'name',
-        'total_price',
         'user_id',
         'vehicle_id',
-        'engine_vehicle_id',
-        'setup_vehicle_id',
-        'color_vehicle_id',
+        'vehicle_price',
+        'engine_id',
+        'engine_price',
+        'setup_id',
+        'setup_price',
+        'color_id',
+        'color_price',
     ]),
 ]
 class Configuration extends Model
 {
     use HasUuids;
+
+    protected $appends = ['total_price'];
 
     public function user(): BelongsTo
     {
@@ -34,30 +39,37 @@ class Configuration extends Model
         return $this->belongsTo(Vehicle::class);
     }
 
-    public function engine(): HasOneThrough
+    public function engine(): BelongsTo
     {
-        return $this->hasOneThrough(Engine::class, EngineVehicle::class);
+        return $this->belongsTo(Engine::class);
     }
 
-    public function setup(): HasOneThrough
+    public function setup(): BelongsTo
     {
-        return $this->hasOneThrough(Setup::class, SetupVehicle::class);
+        return $this->belongsTo(Setup::class);
     }
 
-    public function color(): HasOneThrough
+    public function color(): BelongsTo
     {
-        return $this->hasOneThrough(Color::class, ColorVehicle::class);
+        return $this->belongsTo(Color::class);
     }
 
-    public function optionalSetups(): BelongsToMany
+    public function optionals(): BelongsToMany
     {
         return $this->belongsToMany(
-            OptionalSetup::class,
+            Optional::class,
             'configuration_optionals',
-        );
+        )->withPivot(['optional_price', 'is_included']);
     }
 
-    public function optionals(): BelongsToMany {
-        return $this->optionalSetups()->optionals();
+    public function totalPrice(): Attribute
+    {
+        return Attribute::get(
+            fn() => ($this->vehicle_price ?? 0) +
+                ($this->engine_price ?? 0) +
+                ($this->setup_price ?? 0) +
+                ($this->color_price ?? 0) +
+                ($this->total_optional_price ?? 0),
+        );
     }
 }

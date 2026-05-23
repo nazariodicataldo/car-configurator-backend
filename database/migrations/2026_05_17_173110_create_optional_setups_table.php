@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->decimal('price', 10, 2);
             $table->boolean('is_included')->default(false);
             $table->timestamps();
+            $table->unique(['optional_id', 'setup_id']);
         });
     }
 
