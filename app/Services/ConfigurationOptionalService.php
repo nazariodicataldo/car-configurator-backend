@@ -108,7 +108,9 @@ class ConfigurationOptionalService
                     $data['optional_id'],
                 )
             ) {
-                $conflicts[] = new OptionalResource($existing_optionals->get($id)); // mi salvo l'optional non compatibile
+                $conflicts[] = new OptionalResource(
+                    $existing_optionals->get($id),
+                ); // mi salvo l'optional non compatibile
             }
         }
 

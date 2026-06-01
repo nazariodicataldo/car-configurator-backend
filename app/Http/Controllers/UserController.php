@@ -6,6 +6,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
@@ -16,14 +17,16 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', User::class);
         return $this->user_service->getAll($request);
     }
-    
+
     /**
      * Display the specified resource.
      */
     public function show(Request $request, User $user)
     {
+        Gate::authorize('view', $user);
         return $this->user_service->getSingle($request, $user);
     }
 
@@ -32,6 +35,7 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user)
     {
+        Gate::authorize('update', $user);
         return $this->user_service->update($request, $user);
     }
 
@@ -40,6 +44,7 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        Gate::authorize('delete', $user);
         return $this->user_service->delete($user);
     }
 }

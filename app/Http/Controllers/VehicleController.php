@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateVehicleRequest;
 use App\Models\Vehicle;
 use App\Services\VehicleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class VehicleController extends Controller
 {
@@ -25,6 +26,7 @@ class VehicleController extends Controller
      */
     public function store(StoreVehicleRequest $request)
     {
+        Gate::authorize('create', Vehicle::class);
         return $this->vehicle_service->create($request);
     }
 
@@ -41,6 +43,7 @@ class VehicleController extends Controller
      */
     public function update(UpdateVehicleRequest $request, Vehicle $vehicle)
     {
+        Gate::authorize('update', $vehicle);
         return $this->vehicle_service->update($request, $vehicle);
     }
 
@@ -49,6 +52,7 @@ class VehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle)
     {
+        Gate::authorize('delete', $vehicle);
         return $this->vehicle_service->delete($vehicle);
     }
 }

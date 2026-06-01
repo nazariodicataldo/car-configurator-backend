@@ -3,9 +3,80 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Resources\UserResource;
+use App\Models\User;
+use App\Traits\ApiResponse;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    //
+    use ApiResponse;
+
+    public function register(RegisterRequest $request)
+    {
+        $data = $request->validated();
+        $user = User::create([
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        event(new Registered($user));
+
+        return $this->apiResponse(
+            true,
+            new UserResource($user),
+            201,
+            'Registration successfully completed.',
+        );
+    }
+
+    public function login(LoginRequest $request)
+    {
+        $credentials = $request->validated();
+
+        if (!Auth::attempt($credentials)) {
+            return $this->apiResponse(false, null, 401, 'Invalid credentials.');
+        }
+
+        if (! Auth::user()->hasVerifiedEmail()) {
+            return $this->apiResponse(false, null, 422, 'Email not verified.');
+        }
+
+        $user = Auth::user();
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return $this->apiResponse(
+            true,
+            [
+                'user' => new UserResource($user),
+                'token' => $token,
+            ],
+            200,
+            'Login successfully performed.',
+        );
+    }
+
+    public function logout()
+    {
+        Auth::user()->currentAccessToken()->delete();
+        return response()->json([
+            'message' => 'Logout effettuato con successo',
+        ]);
+    }
+
+    public function me()
+    {
+        return $this->apiResponse(
+            true,
+            new UserResource(Auth::user()),
+            200,
+            'User successfully fetched',
+        );
+    }
 }

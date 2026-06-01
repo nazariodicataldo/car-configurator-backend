@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateConfigurationRequest;
 use App\Models\Configuration;
 use App\Services\ConfigurationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ConfigurationController extends Controller
 {
@@ -17,6 +18,7 @@ class ConfigurationController extends Controller
      */
     public function index(Request $request)
     {
+        Gate::authorize('viewAny', Configuration::class);
         return $this->configuration_service->getAll($request);
     }
 
@@ -33,6 +35,7 @@ class ConfigurationController extends Controller
      */
     public function show(Request $request, Configuration $configuration)
     {
+        Gate::authorize('view', $configuration);
         return $this->configuration_service->getSingle($request, $configuration);
     }
 
@@ -41,6 +44,7 @@ class ConfigurationController extends Controller
      */
     public function update(UpdateConfigurationRequest $request, Configuration $configuration)
     {
+        Gate::authorize('update', $configuration);
         return $this->configuration_service->update($request, $configuration);
     }
 
@@ -49,6 +53,7 @@ class ConfigurationController extends Controller
      */
     public function destroy(Configuration $configuration)
     {
+        Gate::authorize('delete', $configuration);
         return $this->configuration_service->delete($configuration);
     }
 }

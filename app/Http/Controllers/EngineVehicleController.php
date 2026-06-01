@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreEngineVehicleRequest;
 use App\Http\Requests\UpdateEngineVehicleRequest;
 use App\Models\Engine;
+use App\Models\EngineVehicle;
 use App\Models\Vehicle;
 use App\Services\EngineVehicleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EngineVehicleController extends Controller
 {
@@ -28,6 +30,7 @@ class EngineVehicleController extends Controller
      */
     public function store(StoreEngineVehicleRequest $request, Vehicle $vehicle)
     {
+        Gate::authorize('create', EngineVehicle::class);
         return $this->engine_vehicle_service->create($request, $vehicle);
     }
 
@@ -47,6 +50,13 @@ class EngineVehicleController extends Controller
         Vehicle $vehicle,
         Engine $engine,
     ) {
+        $engine = $vehicle
+            ->engines()
+            ->where('engine_id', $engine->id)
+            ->firstOrFail();
+
+        Gate::authorize('update', $engine->pivot);
+
         return $this->engine_vehicle_service->update(
             $request,
             $vehicle,
@@ -59,6 +69,12 @@ class EngineVehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle, Engine $engine)
     {
+        $engine = $vehicle
+            ->engines()
+            ->where('engine_id', $engine->id)
+            ->firstOrFail();
+
+        Gate::authorize('delete', $engine->pivot);
         return $this->engine_vehicle_service->delete($vehicle, $engine);
     }
 }

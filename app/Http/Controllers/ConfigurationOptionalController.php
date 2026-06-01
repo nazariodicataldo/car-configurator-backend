@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreConfigurationOptionalRequest;
 use App\Http\Requests\UpdateConfigurationOptionalRequest;
 use App\Models\Configuration;
+use App\Models\ConfigurationOptional;
 use App\Models\Optional;
 use App\Services\ConfigurationOptionalService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ConfigurationOptionalController extends Controller
 {
@@ -33,6 +35,8 @@ class ConfigurationOptionalController extends Controller
         StoreConfigurationOptionalRequest $request,
         Configuration $configuration,
     ) {
+        Gate::authorize('create', ConfigurationOptional::class);
+
         return $this->configuration_optional_service->create(
             $request,
             $configuration,
@@ -62,6 +66,7 @@ class ConfigurationOptionalController extends Controller
         Configuration $configuration,
         Optional $optional,
     ) {
+        Gate::authorize('update', $optional->pivot);
         return $this->configuration_optional_service->update(
             $request,
             $configuration,
@@ -74,6 +79,7 @@ class ConfigurationOptionalController extends Controller
      */
     public function destroy(Configuration $configuration, Optional $optional)
     {
+        Gate::authorize('delete', $optional->pivot);
         return $this->configuration_optional_service->delete(
             $configuration,
             $optional,

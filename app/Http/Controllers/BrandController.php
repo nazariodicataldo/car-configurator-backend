@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateBrandRequest;
 use App\Models\Brand;
 use App\Services\BrandService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class BrandController extends Controller
 {
@@ -25,6 +26,7 @@ class BrandController extends Controller
      */
     public function store(StoreBrandRequest $request)
     {
+        Gate::authorize('create', Brand::class);
         return $this->brand_service->create($request);
     }
 
@@ -41,6 +43,7 @@ class BrandController extends Controller
      */
     public function update(UpdateBrandRequest $request, Brand $brand)
     {
+        Gate::authorize('update', $brand);
         return $this->brand_service->update($request, $brand);
     }
 
@@ -49,6 +52,7 @@ class BrandController extends Controller
      */
     public function destroy(Brand $brand)
     {
+        Gate::authorize('delete', $brand);
         return $this->brand_service->delete($brand);
     }
 }

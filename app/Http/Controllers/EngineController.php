@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateEngineRequest;
 use App\Models\Engine;
 use App\Services\EngineService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EngineController extends Controller
 {
@@ -25,6 +26,7 @@ class EngineController extends Controller
      */
     public function store(StoreEngineRequest $request)
     {
+        Gate::authorize('create', Engine::class);
         return $this->engine_service->create($request);
     }
 
@@ -41,6 +43,7 @@ class EngineController extends Controller
      */
     public function update(UpdateEngineRequest $request, Engine $engine)
     {
+        Gate::authorize('update', $engine);
         return $this->engine_service->update($request, $engine);
     }
 
@@ -49,6 +52,7 @@ class EngineController extends Controller
      */
     public function destroy(Engine $engine)
     {
+        Gate::authorize('delete', $engine);
         return $this->engine_service->delete($engine);
     }
 }

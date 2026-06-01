@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateOptionalRequest;
 use App\Models\Optional;
 use App\Services\OptionalService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class OptionalController extends Controller
 {
@@ -25,6 +26,7 @@ class OptionalController extends Controller
      */
     public function store(StoreOptionalRequest $request)
     {
+        Gate::authorize('create', Optional::class);
         return $this->optional_service->create($request);
     }
 
@@ -41,6 +43,7 @@ class OptionalController extends Controller
      */
     public function update(UpdateOptionalRequest $request, Optional $optional)
     {
+        Gate::authorize('update', $optional);
         return $this->optional_service->update($request, $optional);
     }
 
@@ -49,6 +52,7 @@ class OptionalController extends Controller
      */
     public function destroy(Optional $optional)
     {
+        Gate::authorize('delete', $optional);
         return $this->optional_service->delete($optional);
     }
 }

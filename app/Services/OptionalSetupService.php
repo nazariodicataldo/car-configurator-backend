@@ -64,6 +64,7 @@ class OptionalSetupService
             $optionals->pluck('id'),
         )
             ->orWhereIn('optional_b_id', $optionals->pluck('id'))
+            ->with(['optionalA', 'optionalB'])
             ->get();
 
         $data = [

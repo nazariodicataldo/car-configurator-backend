@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreColorVehicleRequest;
 use App\Http\Requests\UpdateColorVehicleRequest;
 use App\Models\Color;
+use App\Models\ColorVehicle;
 use App\Models\Vehicle;
 use App\Services\ColorVehicleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ColorVehicleController extends Controller
 {
@@ -28,6 +30,7 @@ class ColorVehicleController extends Controller
      */
     public function store(StoreColorVehicleRequest $request, Vehicle $vehicle)
     {
+        Gate::authorize('create', ColorVehicle::class);
         return $this->color_vehicle_service->create($request, $vehicle);
     }
 
@@ -47,6 +50,12 @@ class ColorVehicleController extends Controller
         Vehicle $vehicle,
         Color $color,
     ) {
+        $color = $vehicle
+            ->colors()
+            ->where('color_id', $color->id)
+            ->firstOrFail();
+
+        Gate::authorize('update', $color->pivot);
         return $this->color_vehicle_service->update($request, $vehicle, $color);
     }
 
@@ -55,6 +64,13 @@ class ColorVehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle, Color $color)
     {
+        $color = $vehicle
+            ->colors()
+            ->where('color_id', $color->id)
+            ->firstOrFail();
+
+        Gate::authorize('delete', $color->pivot);
+
         return $this->color_vehicle_service->delete($vehicle, $color);
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateSetupRequest;
 use App\Models\Setup;
 use App\Services\SetupService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class SetupController extends Controller
 {
@@ -25,6 +26,7 @@ class SetupController extends Controller
      */
     public function store(StoreSetupRequest $request)
     {
+        Gate::authorize('create', Setup::class);
         return $this->setup_service->create($request);
     }
 
@@ -41,6 +43,7 @@ class SetupController extends Controller
      */
     public function update(UpdateSetupRequest $request, Setup $setup)
     {
+        Gate::authorize('update', $setup);
         return $this->setup_service->update($request, $setup);
     }
 
@@ -49,6 +52,7 @@ class SetupController extends Controller
      */
     public function destroy(Setup $setup)
     {
+        Gate::authorize('delete', $setup);
         return $this->setup_service->delete($setup);
     }
 }

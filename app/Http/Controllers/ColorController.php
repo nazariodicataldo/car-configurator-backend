@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateColorRequest;
 use App\Models\Color;
 use App\Services\ColorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ColorController extends Controller
 {
@@ -25,6 +26,7 @@ class ColorController extends Controller
      */
     public function store(StoreColorRequest $request)
     {
+        Gate::authorize('create', Color::class);
         return $this->color_service->create($request);
     }
 
@@ -41,6 +43,7 @@ class ColorController extends Controller
      */
     public function update(UpdateColorRequest $request, Color $color)
     {
+        Gate::authorize('update', $color);
         return $this->color_service->update($request, $color);
     }
 
@@ -49,6 +52,7 @@ class ColorController extends Controller
      */
     public function destroy(Color $color)
     {
+        Gate::authorize('delete', $color);
         return $this->color_service->delete($color);
     }
 }

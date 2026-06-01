@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSetupVehicleRequest;
 use App\Http\Requests\UpdateSetupVehicleRequest;
 use App\Models\Setup;
+use App\Models\SetupVehicle;
 use App\Models\Vehicle;
 use App\Services\SetupVehicleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class SetupVehicleController extends Controller
 {
@@ -28,6 +30,7 @@ class SetupVehicleController extends Controller
      */
     public function store(StoreSetupVehicleRequest $request, Vehicle $vehicle)
     {
+        Gate::authorize('create', SetupVehicle::class);
         return $this->setup_vehicle_service->create($request, $vehicle);
     }
 
@@ -51,11 +54,14 @@ class SetupVehicleController extends Controller
         Vehicle $vehicle,
         Setup $setup,
     ) {
-        return $this->setup_vehicle_service->update(
-            $request,
-            $vehicle,
-            $setup,
-        );
+        $setup = $vehicle
+            ->setups()
+            ->where('setup_id', $setup->id)
+            ->firstOrFail();
+
+        Gate::authorize('update', $setup->pivot);
+
+        return $this->setup_vehicle_service->update($request, $vehicle, $setup);
     }
 
     /**
@@ -63,6 +69,13 @@ class SetupVehicleController extends Controller
      */
     public function destroy(Vehicle $vehicle, Setup $setup)
     {
+        $setup = $vehicle
+            ->setups()
+            ->where('setup_id', $setup->id)
+            ->firstOrFail();
+
+        Gate::authorize('delete', $setup->pivot);
+
         return $this->setup_vehicle_service->delete($vehicle, $setup);
     }
 }

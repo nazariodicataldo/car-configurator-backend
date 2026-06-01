@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreOptionalSetupRequest;
 use App\Http\Requests\UpdateOptionalSetupRequest;
 use App\Models\Optional;
+use App\Models\OptionalSetup;
 use App\Models\Setup;
 use App\Services\OptionalSetupService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class OptionalSetupController extends Controller
 {
@@ -28,6 +30,7 @@ class OptionalSetupController extends Controller
      */
     public function store(StoreOptionalSetupRequest $request, Setup $setup)
     {
+        Gate::authorize('create', OptionalSetup::class);
         return $this->optional_setup_service->create($request, $setup);
     }
 
@@ -51,6 +54,13 @@ class OptionalSetupController extends Controller
         Setup $setup,
         Optional $optional,
     ) {
+        $optional = $setup
+            ->optionals()
+            ->where('optional_id', $optional->id)
+            ->firstOrFail();
+
+        Gate::authorize('update', $optional->pivot);
+
         return $this->optional_setup_service->update(
             $request,
             $setup,
@@ -63,6 +73,12 @@ class OptionalSetupController extends Controller
      */
     public function destroy(Setup $setup, Optional $optional)
     {
+        $optional = $setup
+            ->optionals()
+            ->where('optional_id', $optional->id)
+            ->firstOrFail();
+
+        Gate::authorize('delete', $optional->pivot);
         return $this->optional_setup_service->delete($setup, $optional);
     }
 }
