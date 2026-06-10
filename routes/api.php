@@ -9,6 +9,7 @@ use App\Http\Controllers\ColorVehicleController;
 use App\Http\Controllers\CompatibilityRuleController;
 use App\Http\Controllers\ConfigurationController;
 use App\Http\Controllers\ConfigurationOptionalController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EngineController;
 use App\Http\Controllers\EngineVehicleController;
 use App\Http\Controllers\OptionalController;
@@ -27,6 +28,10 @@ Route::prefix('auth')
         Route::post('login', 'login')->name('login');
         Route::post('register', 'register')->name('register');
     });
+
+Route::get('dashboard', [DashboardController::class, 'index'])->name(
+    'dashboard.index',
+);
 
 // Rotte di /password-reset
 Route::controller(PasswordResetController::class)->group(function () {
@@ -68,8 +73,11 @@ Route::controller(CompatibilityRuleController::class)->group(function () {
 });
 
 Route::controller(OptionalSetupController::class)->group(function () {
-    Route::get('setups/{setup}/optionals', 'index');
-    Route::get('setups/{setup}/optionals/{optional}', 'show')->scopeBindings();
+    Route::get('vehicles/{vehicle}/setups/{setup}/optionals', 'index');
+    Route::get(
+        'vehicles/{vehicle}/setups/{setup}/optionals/{optional}',
+        'show',
+    )->scopeBindings();
 });
 
 Route::controller(SetupVehicleController::class)->group(function () {
@@ -92,6 +100,10 @@ Route::controller(ConfigurationOptionalController::class)->group(function () {
 
 // Middleware di autenticazione e verifica email
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    /* Route::get('dashboard', [DashboardController::class, 'index'])->name(
+        'dashboard.index',
+    ); */
+
     Route::apiResource('vehicles', VehicleController::class)->except([
         'index',
         'show',
@@ -137,13 +149,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     });
 
     Route::controller(OptionalSetupController::class)->group(function () {
-        Route::post('setups/{setup}/optionals', 'store')->scopeBindings();
+        Route::post(
+            'vehicles/{vehicle}/setups/{setup}/optionals',
+            'store',
+        )->scopeBindings();
         Route::patch(
-            'setups/{setup}/optionals/{optional}',
+            'vehicles/{vehicle}/setups/{setup}/optionals/{optional}',
             'update',
         )->scopeBindings();
         Route::delete(
-            'setups/{setup}/optionals/{optional}',
+            'vehicles/{vehicle}/setups/{setup}/optionals/{optional}',
             'destroy',
         )->scopeBindings();
     });

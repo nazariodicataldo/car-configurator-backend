@@ -71,7 +71,7 @@ class BrandService
             true,
             BrandResource::collection($brands),
             200,
-            'Brands successfully fetched',
+            'Marchi recuperati con successo',
         );
     }
 
@@ -85,7 +85,7 @@ class BrandService
             true,
             new BrandResource($brand),
             200,
-            'Brand successfully fetched',
+            'Marchio recuperato con successo',
         );
     }
 
@@ -99,7 +99,7 @@ class BrandService
             true,
             new BrandResource($brand),
             201,
-            'Brand successfully created',
+            'Marchio creato con successo',
         );
     }
 
@@ -107,13 +107,14 @@ class BrandService
     {
         $data = $request->validated();
 
-        $brand = $brand->update($data);
+        $brand->update($data);
+        $brand->refresh();
 
         return $this->apiResponse(
             true,
             new BrandResource($brand),
             201,
-            'Brand successfully updated',
+            'Marchio aggiornato con successo',
         );
     }
 
@@ -124,8 +125,8 @@ class BrandService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Brand successfully deleted',
+            200,
+            'Marchio eliminato con successo',
         );
     }
 }

@@ -95,7 +95,7 @@ class EngineService
             true,
             EngineResource::collection($engines),
             200,
-            'Engines successfully fetched',
+            'Motori caricati con successo',
         );
     }
 
@@ -109,7 +109,7 @@ class EngineService
             true,
             new EngineResource($engine),
             200,
-            'Engine successfully fetched',
+            'Motore caricato con successo',
         );
     }
 
@@ -123,7 +123,7 @@ class EngineService
             true,
             new EngineResource($engine),
             201,
-            'Engine successfully created',
+            'Motore creato con successo',
         );
     }
 
@@ -131,13 +131,15 @@ class EngineService
     {
         $data = $request->validated();
 
-        $engine = $engine->update($data);
+        $engine->update($data);
+
+        $engine->refresh();
 
         return $this->apiResponse(
             true,
             new EngineResource($engine),
             201,
-            'Engine successfully updated',
+            'Motore aggiornato con successo',
         );
     }
 
@@ -148,8 +150,8 @@ class EngineService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Engine successfully deleted',
+            200,
+            'Motore eliminato con successo',
         );
     }
 }

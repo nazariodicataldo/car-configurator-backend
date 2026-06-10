@@ -18,7 +18,7 @@ class ConfigurationController extends Controller
      */
     public function index(Request $request)
     {
-        Gate::authorize('viewAny', Configuration::class);
+        //Gate::authorize('viewAny', Configuration::class);
         return $this->configuration_service->getAll($request);
     }
 

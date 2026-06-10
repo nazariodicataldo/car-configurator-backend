@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'image_url'])]
+#[Fillable(['name', 'img_url'])]
 class Brand extends Model
 {
     use HasUuids;

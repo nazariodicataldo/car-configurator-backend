@@ -22,7 +22,7 @@ class UpdateEngineRequest extends FormRequest
      */
     public function rules(): array
     {
-        $engine_id = $this->route('engine');
+        $engine_id = $this->route('engine')->id;
 
         return [
             'name' => [

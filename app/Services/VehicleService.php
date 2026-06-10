@@ -92,7 +92,7 @@ class VehicleService
             true,
             VehicleResource::collection($vehicles),
             200,
-            'Vehicles successfully fetched',
+            'Veicoli recuperati con successo',
         );
     }
 
@@ -122,7 +122,7 @@ class VehicleService
             true,
             new VehicleResource($vehicle),
             200,
-            'Vehicle successfully fetched',
+            'Veicolo recuperato con successo',
         );
     }
 
@@ -136,7 +136,7 @@ class VehicleService
             true,
             new VehicleResource($vehicle),
             201,
-            'Vehicle successfully created',
+            'Veicolo creato con successo',
         );
     }
 
@@ -144,13 +144,15 @@ class VehicleService
     {
         $data = $request->validated();
 
-        $vehicle = $vehicle->update($data);
+        $vehicle->update($data);
+
+        $vehicle->refresh();
 
         return $this->apiResponse(
             true,
             new VehicleResource($vehicle),
             201,
-            'Vehicle successfully updated',
+            'Veicolo aggiornato con successo',
         );
     }
 
@@ -161,8 +163,8 @@ class VehicleService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Vehicle successfully deleted',
+            200,
+            'Veicolo eliminato con successo',
         );
     }
 }

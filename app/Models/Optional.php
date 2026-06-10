@@ -11,16 +11,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class Optional extends Model
 {
     use HasUuids;
-    
-    public function setups(): BelongsToMany
+
+    public function setupVehicles(): BelongsToMany
     {
-        return $this->belongsToMany(Setup::class, 'optional_setups')
+        return $this->belongsToMany(
+            SetupVehicle::class,
+            'optional_setups',
+            'optional_id',
+            'setup_vehicle_id',
+        )
+            ->using(OptionalSetup::class)
             ->withPivot(['price', 'is_included']);
     }
 
     public function configurations(): BelongsToMany
     {
-        return $this->belongsToMany(Configuration::class, 'configuration_optionals');
+        return $this->belongsToMany(
+            Configuration::class,
+            'configuration_optionals',
+        );
     }
 
     public function compatibilyRules(): BelongsToMany

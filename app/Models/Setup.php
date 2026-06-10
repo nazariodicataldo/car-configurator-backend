@@ -19,15 +19,4 @@ class Setup extends Model
             ->using(SetupVehicle::class)
             ->withPivot(['price']);
     }
-
-    public function optionals(): BelongsToMany
-    {
-        return $this->belongsToMany(Optional::class, 'optional_setups')
-            ->using(SetupVehicle::class)
-            ->withPivot(['price', 'is_included']);
-    }
-
-    /* public function includedOptionals(): HasMany {
-        
-    } */
 }

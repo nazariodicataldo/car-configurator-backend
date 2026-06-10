@@ -17,13 +17,14 @@ return new class extends Migration {
                 ->constrained('optionals')
                 ->cascadeOnDelete();
             $table
-                ->foreignUuid('setup_id')
-                ->constrained('setups')
+                ->foreignUuid('setup_vehicle_id')
+                ->references('id')
+                ->on('setup_vehicles')
                 ->cascadeOnDelete();
             $table->decimal('price', 10, 2);
             $table->boolean('is_included')->default(false);
             $table->timestamps();
-            $table->unique(['optional_id', 'setup_id']);
+            $table->unique(['optional_id', 'setup_vehicle_id']);
         });
     }
 

@@ -6,9 +6,13 @@ use App\Http\Requests\StoreConfigurationRequest;
 use App\Http\Requests\UpdateConfigurationRequest;
 use App\Http\Resources\ConfigurationResource;
 use App\Models\Configuration;
+use App\Models\Optional;
+use App\Models\SetupVehicle;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ConfigurationService
 {
@@ -102,6 +106,12 @@ class ConfigurationService
                 return $query->orderBy($column, $order);
             });
 
+        /* Se l'utente non è admin, ritorna solo i suoi post */
+        $auth_user = Auth::user();
+        if ($auth_user && $auth_user->role !== 'admin') {
+            $query->where('user_id', $auth_user->id);
+        }
+
         /* Return condizionale */
         return $perPage || $page
             ? // Se l'utente passa perPage vuol dire che è interessato alla paginazione
@@ -118,7 +128,7 @@ class ConfigurationService
             true,
             ConfigurationResource::collection($configurations),
             200,
-            'Configurations successfully fetched',
+            'Configurazioni recuperate con successo',
         );
     }
 
@@ -138,7 +148,7 @@ class ConfigurationService
             true,
             new ConfigurationResource($configuration),
             200,
-            'Configuration successfully fetched',
+            'Configurazione recuperata con successo',
         );
     }
 
@@ -146,13 +156,54 @@ class ConfigurationService
     {
         $data = $request->validated();
 
-        $configuration = Configuration::create($data);
+        // Transaction per creare la configurazione e popolare la tabella pivot con gli optionals
+        $configuration = DB::transaction(function () use ($data) {
+            $configuration = Configuration::create([
+                ...$data,
+                'user_id' => Auth::user()->id,
+            ]);
+
+            if (!empty($data['optionals_id'])) {
+                $optionals = $data['optionals_id'];
+                $syncData = []; // Array temporaneo per accumulare i dati
+
+                // Recupero il SetupVehicle una volta sola fuori dal loop
+                $setupVehicle = SetupVehicle::where(
+                    'setup_id',
+                    $configuration->setup_id,
+                )
+                    ->where('vehicle_id', $configuration->vehicle_id)
+                    ->firstOrFail();
+
+                foreach ($optionals as $opt => $opt_id) {
+                    $optional = Optional::findOrFail($opt_id);
+
+                    // Mi prendo il record dalla pivot tra setup e optional per ottenere prezzo e is_included
+                    $optionalSetup = $setupVehicle
+                        ->optionals()
+                        ->withPivot(['price', 'is_included'])
+                        ->where('optionals.id', $opt_id)
+                        ->firstOrFail();
+
+                    $syncData[$opt_id] = [
+                        'id' => (string) Str::uuid(),
+                        'optional_price' => $optionalSetup->pivot->price,
+                        'is_included' => $optionalSetup->pivot->is_included,
+                    ];
+                }
+
+                // Eseguo una query unica
+                $configuration->optionals()->sync($syncData);
+            }
+
+            return $configuration;
+        });
 
         return $this->apiResponse(
             true,
             new ConfigurationResource($configuration),
             201,
-            'Configuration successfully created',
+            'Configurazione creata con successo',
         );
     }
 
@@ -162,13 +213,45 @@ class ConfigurationService
     ) {
         $data = $request->validated();
 
-        $configuration = $configuration->update($data);
+        $configuration = DB::transaction(function () use (
+            $data,
+            $configuration,
+        ) {
+            $configuration->update($data);
+            $configuration->refresh();
+
+            if (!empty($data['optionals'])) {
+                $optionals = $data['optionals'];
+                $syncData = []; // Array temporaneo per accumulare i dati
+
+                foreach ($optionals as $opt => $opt_id) {
+                    $optional = Optional::findOrFail($opt_id);
+
+                    // Mi prendo il record dalla pivot tra setup e optional
+                    $setup = $optional
+                        ->setups()
+                        ->wherePivot('setup_id', $configuration->setup_id)
+                        ->firstOrFail();
+
+                    $syncData[$opt_id] = [
+                        'id' => (string) Str::uuid(),
+                        'optional_price' => $setup->pivot->price,
+                        'is_included' => $setup->pivot->is_included,
+                    ];
+                }
+
+                // Eseguo una query unica
+                $configuration->optionals()->sync($syncData);
+            }
+
+            return $configuration;
+        });
 
         return $this->apiResponse(
             true,
             new ConfigurationResource($configuration),
             201,
-            'Configuration successfully updated',
+            'Configurazione aggiornata con successo',
         );
     }
 
@@ -179,8 +262,8 @@ class ConfigurationService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Configuration successfully deleted',
+            200,
+            'Configurazione eliminata con successo',
         );
     }
 }

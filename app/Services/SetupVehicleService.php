@@ -59,20 +59,17 @@ class SetupVehicleService
             true,
             SetupResource::collection($data),
             200,
-            'Setups successfully fetched',
+            'Allestimenti recuperati con successo',
         );
     }
 
-    public function getSingle(
-        Request $request,
-        Vehicle $vehicle,
-        Setup $setup,
-    ) {
+    public function getSingle(Request $request, Vehicle $vehicle, Setup $setup)
+    {
         return $this->apiResponse(
             true,
             new SetupResource($setup),
             200,
-            'Setup successfully fetched',
+            'Allestimento recuperato con successo',
         );
     }
 
@@ -94,7 +91,7 @@ class SetupVehicleService
             true,
             new SetupResource($data),
             201,
-            'Setup successfully created',
+            'Allestimento creato con successo',
         );
     }
 
@@ -107,11 +104,13 @@ class SetupVehicleService
 
         $vehicle->setups()->updateExistingPivot($setup->id, $data);
 
+        $setup->refresh();
+
         return $this->apiResponse(
             true,
             new SetupResource($setup),
             201,
-            'Setup successfully updated',
+            'Allestimento aggiornato con successo',
         );
     }
 
@@ -122,8 +121,8 @@ class SetupVehicleService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Setup successfully deleted',
+            200,
+            'Allestimento eliminato con successo',
         );
     }
 }

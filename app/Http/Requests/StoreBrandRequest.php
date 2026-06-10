@@ -24,7 +24,7 @@ class StoreBrandRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:3', 'max:50'],
-            'image' => ['nullable', 'string', 'min:3'],
+            'img_url' => ['nullable', 'string', 'min:3'],
         ];
     }
 }

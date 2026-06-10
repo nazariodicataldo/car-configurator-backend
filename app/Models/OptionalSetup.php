@@ -4,12 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-#[Fillable(['price', 'is_included', 'optional_id', 'setup_id'])]
-class OptionalSetup extends Model
+#[Fillable(['price', 'is_included', 'optional_id', 'setup_vehicle_id'])]
+class OptionalSetup extends Pivot
 {
     use HasUuids;
     protected $table = 'optional_setups';

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,13 +20,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
         'setup_price',
         'color_id',
         'color_price',
+        'total_price',
     ]),
 ]
 class Configuration extends Model
 {
     use HasUuids;
-
-    protected $appends = ['total_price'];
 
     public function user(): BelongsTo
     {
@@ -60,16 +58,5 @@ class Configuration extends Model
             Optional::class,
             'configuration_optionals',
         )->withPivot(['optional_price', 'is_included']);
-    }
-
-    public function totalPrice(): Attribute
-    {
-        return Attribute::get(
-            fn() => ($this->vehicle_price ?? 0) +
-                ($this->engine_price ?? 0) +
-                ($this->setup_price ?? 0) +
-                ($this->color_price ?? 0) +
-                ($this->total_optional_price ?? 0),
-        );
     }
 }

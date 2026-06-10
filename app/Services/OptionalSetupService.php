@@ -9,138 +9,152 @@ use App\Http\Resources\OptionalResource;
 use App\Models\CompatibilityRule;
 use App\Models\Optional;
 use App\Models\Setup;
+use App\Models\SetupVehicle;
+use App\Models\Vehicle;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
 class OptionalSetupService
 {
     use ApiResponse;
-    /**
-     * Create a new class instance.
-     */
+
     public function __construct() {}
 
-    private function filter(Request $request, Setup $setup)
+    private function getSetupVehicle(Vehicle $vehicle, Setup $setup): SetupVehicle
     {
-        // Mi prendo i valori di perPage e page
+        return SetupVehicle::where('setup_id', $setup->id)
+            ->where('vehicle_id', $vehicle->id)
+            ->firstOrFail();
+    }
+
+    private function filter(Request $request, Vehicle $vehicle, Setup $setup)
+    {
+        $setupVehicle = $this->getSetupVehicle($vehicle, $setup);
+
         $perPage = $request->query('perPage');
         $page = $request->query('page');
 
-        // Colonne ammesse
         $allowedColumns = ['created_at', 'id', 'price'];
         $column = in_array($request->query('orderBy'), $allowedColumns)
             ? $request->query('orderBy')
             : 'price';
 
         $allowedOrders = ['asc', 'desc'];
-
         $order = in_array(strtolower($request->query('order')), $allowedOrders)
             ? $request->query('order')
             : 'asc';
 
-        $query = $setup
+        $query = $setupVehicle
             ->optionals()
-            /* Ordina */
-            ->when($column, function ($query) use ($column, $order) {
-                return $query->orderBy($column, $order);
-            });
+            ->withPivot(['price', 'is_included'])
+            ->when($column, fn($q) => $q->orderBy($column, $order));
 
-        /* Return condizionale */
         return $perPage || $page
-            ? // Se l'utente passa perPage vuol dire che è interessato alla paginazione
-            $query
-                ->paginate($perPage ?? 12, ['*'], 'page', $page ?? 1)
-                ->withQueryString()
+            ? $query->paginate($perPage ?? 12, ['*'], 'page', $page ?? 1)->withQueryString()
             : $query->get();
     }
 
-    public function getAll(Request $request, Setup $setup)
+    public function getAll(Request $request, Vehicle $vehicle, Setup $setup)
     {
-        $optionals = $this->filter($request, $setup);
+        $optionals = $this->filter($request, $vehicle, $setup);
 
-        // Ritorno le regole di compatibilità
-        $rules = CompatibilityRule::whereIn(
-            'optional_a_id',
-            $optionals->pluck('id'),
-        )
+        $rules = CompatibilityRule::whereIn('optional_a_id', $optionals->pluck('id'))
             ->orWhereIn('optional_b_id', $optionals->pluck('id'))
             ->with(['optionalA', 'optionalB'])
             ->get();
 
-        $data = [
-            'items' => OptionalResource::collection($optionals),
-            'rules' => CompatibilityRuleResource::collection($rules),
-        ];
-
         return $this->apiResponse(
             true,
-            $data,
+            [
+                'items' => OptionalResource::collection($optionals),
+                'rules' => CompatibilityRuleResource::collection($rules),
+            ],
             200,
-            'Optionals successfully fetched',
+            'Accessori recuperati con successo',
         );
     }
 
     public function getSingle(
-        Request $request,
+        Vehicle $vehicle,
         Setup $setup,
         Optional $optional,
     ) {
+        $setupVehicle = $this->getSetupVehicle($vehicle, $setup);
+
+        $optional = $setupVehicle
+            ->optionals()
+            ->withPivot(['price', 'is_included'])
+            ->where('optionals.id', $optional->id)
+            ->firstOrFail();
+
         return $this->apiResponse(
             true,
             new OptionalResource($optional),
             200,
-            'Optional successfully fetched',
+            'Accessorio recuperato con successo',
         );
     }
 
-    public function create(StoreOptionalSetupRequest $request, Setup $setup)
-    {
-        $data = $request->validated();
+    public function create(
+        StoreOptionalSetupRequest $request,
+        Vehicle $vehicle,
+        Setup $setup,
+    ) {
+        $validated = $request->validated();
 
-        $setup
-            ->optionals()
-            ->attach($data['optional_id'], ['price' => $data['price']]);
+        $setupVehicle = $this->getSetupVehicle($vehicle, $setup);
 
-        // Mi ritorno il record appena collegato
-        $data = $setup
+        $setupVehicle->optionals()->attach($validated['optional_id'], [
+            'price' => $validated['price'],
+            'is_included' => $validated['is_included'] ?? false,
+        ]);
+
+        $optional = $setupVehicle
             ->optionals()
-            ->wherePivot('optional_id', $data['optional_id'])
-            ->first();
+            ->withPivot(['price', 'is_included'])
+            ->where('optionals.id', $validated['optional_id'])
+            ->firstOrFail();
 
         return $this->apiResponse(
             true,
-            new OptionalResource($data),
+            new OptionalResource($optional),
             201,
-            'Optional successfully created',
+            'Accessorio creato con successo',
         );
     }
 
     public function update(
         UpdateOptionalSetupRequest $request,
+        Vehicle $vehicle,
         Setup $setup,
         Optional $optional,
     ) {
-        $data = $request->validated();
+        $validated = $request->validated();
 
-        $setup->optionals()->updateExistingPivot($optional->id, $data);
+        $setupVehicle = $this->getSetupVehicle($vehicle, $setup);
+
+        $setupVehicle->optionals()->updateExistingPivot($optional->id, $validated);
+
+        $updated = $setupVehicle
+            ->optionals()
+            ->withPivot(['price', 'is_included'])
+            ->where('optionals.id', $optional->id)
+            ->firstOrFail();
 
         return $this->apiResponse(
             true,
-            new OptionalResource($optional),
-            201,
-            'Optional successfully updated',
+            new OptionalResource($updated),
+            200,
+            'Accessorio aggiornato con successo',
         );
     }
 
-    public function delete(Setup $setup, Optional $optional)
+    public function delete(Vehicle $vehicle, Setup $setup, Optional $optional)
     {
-        $setup->optionals()->detach($optional->id);
+        $setupVehicle = $this->getSetupVehicle($vehicle, $setup);
 
-        return $this->apiResponse(
-            true,
-            null,
-            204,
-            'Optional successfully deleted',
-        );
+        $setupVehicle->optionals()->detach($optional->id);
+
+        return $this->apiResponse(true, null, 200, 'Accessorio eliminato con successo');
     }
 }

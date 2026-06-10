@@ -24,7 +24,6 @@ class StoreConfigurationRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:3', 'max:50'],
-            'user_id' => ['required', 'uuid', 'exists:users,id'],
             'vehicle_id' => ['required', 'uuid', 'exists:vehicles,id'],
             'vehicle_price' => [
                 'required',
@@ -51,6 +50,15 @@ class StoreConfigurationRequest extends FormRequest
             ],
             'color_id' => ['required', 'uuid', 'exists:colors,id'],
             'color_price' => [
+                'required',
+                'numeric',
+                'decimal:0,2',
+                'min:0',
+                'max:99999999',
+            ],
+            'optionals_id' => ['nullable', 'array'],
+            'optionals_id.*' => ['uuid', 'exists:optionals,id'],
+            'total_price' => [
                 'required',
                 'numeric',
                 'decimal:0,2',

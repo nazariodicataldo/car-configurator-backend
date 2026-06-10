@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
@@ -25,7 +26,20 @@ class SetupVehicle extends Pivot
         return $this->belongsTo(Setup::class);
     }
 
-    public function configurations(): HasMany {
+    public function configurations(): HasMany
+    {
         return $this->hasMany(Configuration::class);
+    }
+
+    public function optionals(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Optional::class,
+            'optional_setups',
+            'setup_vehicle_id',
+            'optional_id',
+        )
+            ->using(OptionalSetup::class)
+            ->withPivot(['price', 'is_included']);
     }
 }

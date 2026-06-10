@@ -24,7 +24,7 @@ class UpdateBrandRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'min:3', 'max:50'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'img_url' => ['nullable', 'string', 'min:3'],
         ];
     }
 }

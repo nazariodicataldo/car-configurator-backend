@@ -59,7 +59,7 @@ class EngineVehicleService
             true,
             EngineResource::collection($data),
             200,
-            'Engines successfully fetched',
+            'Motori recuperati con successo',
         );
     }
 
@@ -69,7 +69,7 @@ class EngineVehicleService
             true,
             new EngineResource($engine),
             200,
-            'Engine successfully fetched',
+            'Motore recuperato con successo',
         );
     }
 
@@ -77,15 +77,20 @@ class EngineVehicleService
     {
         $data = $request->validated();
 
-        $data = $vehicle
+        $vehicle
             ->engines()
             ->attach($data['engine_id'], ['price' => $data['price']]);
 
+        $engine = $vehicle
+            ->engines()
+            ->wherePivot('engine_id', $data['engine_id'])
+            ->first();
+
         return $this->apiResponse(
             true,
-            new EngineResource($data),
+            new EngineResource($engine),
             201,
-            'Engine successfully created',
+            'Motore creato con successo',
         );
     }
 
@@ -98,11 +103,13 @@ class EngineVehicleService
 
         $vehicle->engines()->updateExistingPivot($engine->id, $data);
 
+        $engine->refresh();
+
         return $this->apiResponse(
             true,
             new EngineResource($engine),
             201,
-            'Engine successfully updated',
+            'Motore aggiornato con successo',
         );
     }
 
@@ -113,8 +120,8 @@ class EngineVehicleService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Engine successfully deleted',
+            200,
+            'Motore eliminato con successo',
         );
     }
 }

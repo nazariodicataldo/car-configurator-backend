@@ -19,17 +19,16 @@ class ConfigurationResource extends JsonResource
             'enginePrice' => (float) $this->engine_price,
             'setupPrice' => (float) $this->setup_price,
             'colorPrice' => (float) $this->color_price,
+            'totalOptionalPrice' => (float) $this->total_optional_price,
             'totalPrice' => (float) $this->total_price,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
             'user' => new UserResource($this->whenLoaded('user')),
-            'vehicle' => new VehicleResource($this->whenLoaded('vehicle')),
-            'engine' => new EngineResource($this->whenLoaded('engine')),
-            'setup' => new SetupResource($this->whenLoaded('setup')),
-            'color' => new ColorResource($this->whenLoaded('color')),
-            'optionals' => OptionalResource::collection(
-                $this->whenLoaded('optionals'),
-            ),
+            'vehicle' => new VehicleResource($this->vehicle),
+            'engine' => new EngineResource($this->engine),
+            'setup' => new SetupResource($this->setup),
+            'color' => new ColorResource($this->color),
+            'optionals' => OptionalResource::collection($this->optionals),
         ];
     }
 }

@@ -40,10 +40,6 @@ class SetupService
             ->when($request->boolean('withVehicles'), function ($query) {
                 return $query->with('vehicles');
             })
-            // Carico gli optionals
-            ->when($request->boolean('withOptionals'), function ($query) {
-                return $query->with('optionals');
-            })
             /* Filtro per nome */
             ->when($request->query('name'), function ($query, $name) {
                 return $query->where('name', 'ILIKE', '%' . $name . '%');
@@ -69,7 +65,7 @@ class SetupService
             true,
             SetupResource::collection($setups),
             200,
-            'Setups successfully fetched',
+            'Allestimenti recuperati con successo',
         );
     }
 
@@ -79,15 +75,11 @@ class SetupService
             $setup->load('vehicles');
         }
 
-        if ($request->boolean('withOptionals')) {
-            $setup->load('optionals');
-        }
-
         return $this->apiResponse(
             true,
             new SetupResource($setup),
             200,
-            'Setup successfully fetched',
+            'Allestimento recuperato con successo',
         );
     }
 
@@ -101,7 +93,7 @@ class SetupService
             true,
             new SetupResource($setup),
             201,
-            'Setup successfully created',
+            'Allestimento creato con successo',
         );
     }
 
@@ -109,13 +101,15 @@ class SetupService
     {
         $data = $request->validated();
 
-        $setup = $setup->update($data);
+        $setup->update($data);
+
+        $setup->refresh();
 
         return $this->apiResponse(
             true,
             new SetupResource($setup),
             201,
-            'Setup successfully updated',
+            'Allestimento aggiornato con successo',
         );
     }
 
@@ -126,8 +120,8 @@ class SetupService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Setup successfully deleted',
+            200,
+            'Allestimento eliminato con successo',
         );
     }
 }

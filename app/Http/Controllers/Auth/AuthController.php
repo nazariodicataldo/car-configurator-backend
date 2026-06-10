@@ -44,7 +44,7 @@ class AuthController extends Controller
             return $this->apiResponse(false, null, 401, 'Invalid credentials.');
         }
 
-        if (! Auth::user()->hasVerifiedEmail()) {
+        if (!Auth::user()->hasVerifiedEmail()) {
             return $this->apiResponse(false, null, 422, 'Email not verified.');
         }
 
@@ -65,16 +65,19 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::user()->currentAccessToken()->delete();
-        return response()->json([
-            'message' => 'Logout effettuato con successo',
-        ]);
+        return $this->apiResponse(
+            true,
+            null,
+            200,
+            'Logout effettuato con successo',
+        );
     }
 
     public function me()
     {
         return $this->apiResponse(
             true,
-            new UserResource(Auth::user()),
+            new UserResource(Auth::user()->load('configurations')),
             200,
             'User successfully fetched',
         );

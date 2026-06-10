@@ -24,9 +24,6 @@ class SetupResource extends JsonResource
             'vehicles' => VehicleResource::collection(
                 $this->whenLoaded('vehicles'),
             ),
-            'optionals' => OptionalResource::collection(
-                $this->whenLoaded('optionals'),
-            ),
         ];
     }
 }
