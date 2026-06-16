@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
         'body_type',
         'seats',
         'base_price',
-        'base_img_url',
+        'default_color_id',
         'brand_id',
     ]),
 ]
@@ -46,8 +46,27 @@ class Vehicle extends Model
     {
         return $this->belongsToMany(Color::class, 'color_vehicles')
             ->using(ColorVehicle::class)
-            ->withPivot(['price']);
+            ->withPivot([
+                'price',
+                'front_image_url',
+                'back_image_url',
+                'side_image_url',
+            ]);
     }
+
+    /* public function defaultColor()
+    {
+        return $this->belongsToMany(Color::class, 'color_vehicles')
+            ->using(ColorVehicle::class)
+            ->withPivot([
+                'price',
+                'front_image_url',
+                'back_image_url',
+                'side_image_url',
+            ]);
+            ->wherePivot('color_id', $this->default_color_id);
+        //return $this->belongsTo(Color::class, 'default_color_id');
+    } */
 
     public function configurations(): HasMany
     {

@@ -39,7 +39,7 @@ class StoreColorVehicleRequest extends FormRequest
                         ->first();
 
                     if ($existing_color_pivot !== null) {
-                        $fail('This color already exists in the pivot table');
+                        $fail('Questo colore esiste già nella tabella pivot');
                     }
                 },
             ],
@@ -49,6 +49,19 @@ class StoreColorVehicleRequest extends FormRequest
                 'decimal:0,2',
                 'min:0',
                 'max:9999999',
+            ],
+            'front_image' => ['nullable', 'file', 'image', 'max:5120'],
+            'side_image' => ['nullable', 'file', 'image', 'max:5120'],
+            'back_image' => ['nullable', 'file', 'image', 'max:5120'],
+            'is_default' => [
+                'nullable',
+                'boolean',
+                function ($attribute, $value, $fail) use ($vehicle) {
+                    // Verifico se vehicle ha già un colore default
+                    /* if ($value === 'true' && $vehicle->default_color_id) {
+                        $fail('Il veicolo ha già un colore predefinito');
+                    } */
+                },
             ],
         ];
     }

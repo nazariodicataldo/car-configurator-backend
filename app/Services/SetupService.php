@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSetupRequest;
 use App\Http\Requests\UpdateSetupRequest;
 use App\Http\Resources\SetupResource;
 use App\Models\Setup;
+use App\Models\SetupVehicle;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -73,6 +74,20 @@ class SetupService
     {
         if ($request->boolean('withVehicles')) {
             $setup->load('vehicles');
+        }
+
+        $vehicle_id = $request->query('vehicleId');
+        if ($request->boolean('withOptionals') && $vehicle_id) {
+            $setupVehicle = SetupVehicle::where('setup_id', $setup->id)
+                ->where('vehicle_id', $vehicle_id)
+                ->firstOrFail();
+
+            $optionals = $setupVehicle
+                ->optionals()
+                ->withPivot(['price', 'is_included'])
+                ->get();
+
+            $setup->setRelation('optionals', $optionals);
         }
 
         return $this->apiResponse(

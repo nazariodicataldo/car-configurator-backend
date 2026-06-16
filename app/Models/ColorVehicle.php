@@ -8,7 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-#[Fillable(['price', 'color_id', 'vehicle_id'])]
+#[
+    Fillable([
+        'price',
+        'color_id',
+        'vehicle_id',
+        'front_image_url',
+        'back_image_url',
+        'side_image_url',
+    ]),
+]
 class ColorVehicle extends Pivot
 {
     use HasUuids;

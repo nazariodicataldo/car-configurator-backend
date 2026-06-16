@@ -22,6 +22,9 @@ class UpdateColorVehicleRequest extends FormRequest
      */
     public function rules(): array
     {
+        $vehicle = $this->route('vehicle');
+        $color = $this->route('color');
+
         return [
             'price' => [
                 'sometimes',
@@ -29,6 +32,23 @@ class UpdateColorVehicleRequest extends FormRequest
                 'decimal:0,2',
                 'min:0',
                 'max:99999999',
+            ],
+            'front_image' => ['nullable', 'file', 'image', 'max:5120'],
+            'side_image' => ['nullable', 'file', 'image', 'max:5120'],
+            'back_image' => ['nullable', 'file', 'image', 'max:5120'],
+            'is_default' => [
+                'nullable',
+                'boolean',
+                /* function ($attribute, $value, $fail) use ($vehicle, $color) {
+                    // Verifico se vehicle ha già un colore default o se questo è diverso dal colore in questione
+                    if (
+                        $value === 'true' &&
+                        $vehicle->default_color_id &&
+                        $vehicle->default_color_id !== $color->id
+                    ) {
+                        $fail('Il veicolo ha già un colore predefinito');
+                    }
+                }, */
             ],
         ];
     }

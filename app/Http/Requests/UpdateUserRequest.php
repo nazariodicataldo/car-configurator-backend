@@ -24,10 +24,9 @@ class UpdateUserRequest extends FormRequest
     {
         $user_id = $this->route('user')->id;
         return [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' =>
-                'required|string|email|max:255|unique:users,email,' . $user_id,
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'role' => ['sometimes', 'in:user,admin']
         ];
     }
 }

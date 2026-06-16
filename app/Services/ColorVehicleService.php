@@ -8,11 +8,13 @@ use App\Http\Resources\ColorResource;
 use App\Models\Color;
 use App\Models\Vehicle;
 use App\Traits\ApiResponse;
+use App\Traits\HasFileUpload;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ColorVehicleService
 {
-    use ApiResponse;
+    use ApiResponse, HasFileUpload;
     /**
      * Create a new class instance.
      */
@@ -38,6 +40,12 @@ class ColorVehicleService
 
         $query = $vehicle
             ->colors()
+            ->withPivot([
+                'price',
+                'front_image_url',
+                'side_image_url',
+                'back_image_url',
+            ])
             /* Ordina */
             ->when($column, function ($query) use ($column, $order) {
                 return $query->orderBy($column, $order);
@@ -55,6 +63,18 @@ class ColorVehicleService
     public function getAll(Request $request, Vehicle $vehicle)
     {
         $data = $this->filter($request, $vehicle);
+
+        $data->transform(function ($color) use ($vehicle) {
+            if ($color->id === $vehicle->default_color_id) {
+                $color->is_default = true;
+                $color->pivot->price = 0;
+            } else {
+                $color->is_default = false;
+            }
+
+            return $color;
+        });
+
         return $this->apiResponse(
             true,
             ColorResource::collection($data),
@@ -65,9 +85,27 @@ class ColorVehicleService
 
     public function getSingle(Vehicle $vehicle, Color $color)
     {
+        $colorWithPivot = $vehicle
+            ->colors()
+            ->withPivot([
+                'price',
+                'front_image_url',
+                'side_image_url',
+                'back_image_url',
+            ])
+            ->wherePivot('color_id', $color->id)
+            ->firstOrFail();
+
+        if ($colorWithPivot->id === $vehicle->default_color_id) {
+            $colorWithPivot->is_default = true;
+            $colorWithPivot->pivot->price = 0;
+        } else {
+            $colorWithPivot->is_default = false;
+        }
+
         return $this->apiResponse(
             true,
-            new ColorResource($color),
+            new ColorResource($colorWithPivot),
             200,
             'Color successfully fetched',
         );
@@ -75,21 +113,69 @@ class ColorVehicleService
 
     public function create(StoreColorVehicleRequest $request, Vehicle $vehicle)
     {
-        $data = $request->validated();
+        $validated = $request->validated();
 
-        $vehicle
-            ->colors()
-            ->attach($data['color_id'], ['price' => $data['price']]);
+        $pivotData = ['price' => $validated['price']];
 
-        // Mi ritorno il record appena collegato
-        $data = $vehicle
-            ->colors()
-            ->wherePivot('color_id', $data['color_id'])
-            ->first();
+        if ($request->hasFile('front_image')) {
+            $pivotData['front_image_url'] = $this->uploadImage(
+                $request,
+                'colors',
+                null,
+                'front_image',
+            );
+        }
+        if ($request->hasFile('side_image')) {
+            $pivotData['side_image_url'] = $this->uploadImage(
+                $request,
+                'colors',
+                null,
+                'side_image',
+            );
+        }
+        if ($request->hasFile('back_image')) {
+            $pivotData['back_image_url'] = $this->uploadImage(
+                $request,
+                'colors',
+                null,
+                'back_image',
+            );
+        }
+
+        $color = DB::transaction(function () use (
+            $vehicle,
+            $pivotData,
+            $validated,
+        ) {
+            $vehicle->colors()->attach($validated['color_id'], $pivotData);
+
+            $is_default =
+                isset($validated['is_default']) && $validated['is_default'];
+
+            // imposto come colore default al veicolo
+            if (!$vehicle->default_color_id && $is_default) {
+                $vehicle->update([
+                    'default_color_id' => $validated['color_id'],
+                ]);
+
+                $vehicle->refresh();
+            }
+
+            return $vehicle
+                ->colors()
+                ->withPivot([
+                    'price',
+                    'front_image_url',
+                    'side_image_url',
+                    'back_image_url',
+                ])
+                ->wherePivot('color_id', $validated['color_id'])
+                ->first();
+        });
 
         return $this->apiResponse(
             true,
-            new ColorResource($data),
+            new ColorResource($color),
             201,
             'Color successfully created',
         );
@@ -100,14 +186,83 @@ class ColorVehicleService
         Vehicle $vehicle,
         Color $color,
     ) {
-        $data = $request->validated();
+        $validated = $request->validated();
+        $pivotData = [];
 
-        $vehicle->colors()->updateExistingPivot($color->id, $data);
+        $currentPivot = $vehicle
+            ->colors()
+            ->withPivot([
+                'price',
+                'front_image_url',
+                'side_image_url',
+                'back_image_url',
+            ])
+            ->wherePivot('color_id', $color->id)
+            ->firstOrFail();
+
+        if ($request->hasFile('front_image')) {
+            $pivotData['front_image_url'] = $this->uploadImage(
+                $request,
+                'colors',
+                $currentPivot->pivot->front_image_url,
+                'front_image',
+            );
+        }
+        if ($request->hasFile('side_image')) {
+            $pivotData['side_image_url'] = $this->uploadImage(
+                $request,
+                'colors',
+                $currentPivot->pivot->side_image_url,
+                'side_image',
+            );
+        }
+        if ($request->hasFile('back_image')) {
+            $pivotData['back_image_url'] = $this->uploadImage(
+                $request,
+                'colors',
+                $currentPivot->pivot->back_image_url,
+                'back_image',
+            );
+        }
+
+        $pivotData['price'] = $validated['price'];
+
+        $updated = DB::transaction(function () use (
+            $vehicle,
+            $pivotData,
+            $color,
+            $validated,
+        ) {
+            $vehicle->colors()->updateExistingPivot($color->id, $pivotData);
+
+            if (isset($validated['is_default'])) {
+                if ($validated['is_default']) {
+                    // Questo colore diventa il default
+                    $vehicle->update(['default_color_id' => $color->id]);
+                } elseif ($vehicle->default_color_id === $color->id) {
+                    // Se l'utente passa false, l'auto non ha più colori di default
+                    $vehicle->update(['default_color_id' => null]);
+                }
+            }
+
+            $vehicle->refresh();
+
+            return $vehicle
+                ->colors()
+                ->withPivot([
+                    'price',
+                    'front_image_url',
+                    'side_image_url',
+                    'back_image_url',
+                ])
+                ->wherePivot('color_id', $color->id)
+                ->first();
+        });
 
         return $this->apiResponse(
             true,
-            new ColorResource($color),
-            201,
+            new ColorResource($updated),
+            200,
             'Color successfully updated',
         );
     }
@@ -119,8 +274,8 @@ class ColorVehicleService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Color successfully deleted',
+            200,
+            'Colore eliminato con successo',
         );
     }
 }

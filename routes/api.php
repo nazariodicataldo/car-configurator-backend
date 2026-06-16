@@ -77,7 +77,7 @@ Route::controller(OptionalSetupController::class)->group(function () {
     Route::get(
         'vehicles/{vehicle}/setups/{setup}/optionals/{optional}',
         'show',
-    )->scopeBindings();
+    )/* ->scopeBindings() */;
 });
 
 Route::controller(SetupVehicleController::class)->group(function () {
@@ -156,11 +156,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
         Route::patch(
             'vehicles/{vehicle}/setups/{setup}/optionals/{optional}',
             'update',
-        )->scopeBindings();
+        )/* ->scopeBindings() */;
         Route::delete(
             'vehicles/{vehicle}/setups/{setup}/optionals/{optional}',
             'destroy',
-        )->scopeBindings();
+        )/* ->scopeBindings() */;
     });
 
     Route::controller(SetupVehicleController::class)->group(function () {

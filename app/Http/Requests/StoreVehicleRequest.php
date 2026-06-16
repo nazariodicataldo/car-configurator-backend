@@ -30,11 +30,20 @@ class StoreVehicleRequest extends FormRequest
                 'max:50',
                 'unique:vehicles,name',
             ],
-            'body_type' => ['required', 'string', 'in:berlina,due volumi,suv,monovolume,coupe,cabriolet,furgone,autobus,camion'],
-            'seats' => ['required', 'string', 'in:2,4,5,6,7,8,9'],
-            'base_img' => ['nullable', 'image', 'max:2048'],
-            'base_price' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:99999999'],
-            'brand_id' => ['required', 'uuid', 'exists:brands,id']
+            'body_type' => [
+                'required',
+                'string',
+                'in:berlina,due volumi,suv,monovolume,coupe,cabriolet,furgone,autobus,camion',
+            ],
+            'seats' => ['required', 'numeric', 'min:2', 'max:9'],
+            'base_price' => [
+                'required',
+                'numeric',
+                'decimal:0,2',
+                'min:0',
+                'max:99999999',
+            ],
+            'brand_id' => ['required', 'uuid', 'exists:brands,id'],
         ];
     }
 }

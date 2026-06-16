@@ -19,7 +19,10 @@ class SetupResource extends JsonResource
             'updatedAt' => $this->updated_at,
             'price' => $this->whenPivotLoaded(
                 'setup_vehicles',
-                fn () => (float) $this->pivot->price,
+                fn() => (float) $this->pivot->price,
+            ),
+            'optionals' => OptionalResource::collection(
+                $this->whenLoaded('optionals'),
             ),
             'vehicles' => VehicleResource::collection(
                 $this->whenLoaded('vehicles'),

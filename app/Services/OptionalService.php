@@ -75,7 +75,7 @@ class OptionalService
             true,
             OptionalResource::collection($optional),
             200,
-            'Optionals successfully fetched',
+            'Optionals caricati con successo',
         );
     }
 
@@ -93,7 +93,7 @@ class OptionalService
             true,
             new OptionalResource($setup),
             200,
-            'Optional successfully fetched',
+            'Optional caricato con successo',
         );
     }
 
@@ -107,7 +107,7 @@ class OptionalService
             true,
             new OptionalResource($setup),
             201,
-            'Optional successfully created',
+            'Optional creato con successo',
         );
     }
 
@@ -115,13 +115,15 @@ class OptionalService
     {
         $data = $request->validated();
 
-        $setup = $setup->update($data);
+        $setup->update($data);
+
+        $setup->refresh();
 
         return $this->apiResponse(
             true,
             new OptionalResource($setup),
             201,
-            'Optional successfully updated',
+            'Optional modificato con successo',
         );
     }
 
@@ -132,8 +134,8 @@ class OptionalService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Optional successfully deleted',
+            200,
+            'Optional eliminato con successo',
         );
     }
 }

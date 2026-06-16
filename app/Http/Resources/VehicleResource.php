@@ -19,32 +19,38 @@ class VehicleResource extends JsonResource
                 'bodyType' => $this->body_type,
                 'seats' => (int) $this->seats,
                 'basePrice' => (float) $this->base_price,
-                'baseImgUrl' => $this->base_img_url,
                 'createdAt' => $this->created_at,
                 'updatedAt' => $this->updated_at,
                 'brand' => new BrandResource($this->whenLoaded('brand')),
+                'defaultColor' => new ColorResource(
+                    $this->colors->firstWhere('id', $this->default_color_id),
+                ),
                 'engines' => EngineResource::collection(
                     $this->whenLoaded('engines'),
                 ),
-                'setups' => SetupResource::collection($this->whenLoaded('setups')),
-                'colors' => ColorResource::collection($this->whenLoaded('colors')),
+                'setups' => SetupResource::collection(
+                    $this->whenLoaded('setups'),
+                ),
+                'colors' => ColorResource::collection(
+                    $this->whenLoaded('colors'),
+                ),
                 'configurations' => ConfigurationResource::collection(
                     $this->whenLoaded('configurations'),
                 ),
             ],
             $this->whenPivotLoaded(
                 'engine_vehicles',
-                fn () => ['price' => (float) $this->pivot->price],
+                fn() => ['price' => (float) $this->pivot->price],
                 [],
             ),
             $this->whenPivotLoaded(
                 'setup_vehicles',
-                fn () => ['price' => (float) $this->pivot->price],
+                fn() => ['price' => (float) $this->pivot->price],
                 [],
             ),
             $this->whenPivotLoaded(
                 'color_vehicles',
-                fn () => ['price' => (float) $this->pivot->price],
+                fn() => ['price' => (float) $this->pivot->price],
                 [],
             ),
         );

@@ -22,7 +22,7 @@ class UpdateOptionalRequest extends FormRequest
      */
     public function rules(): array
     {
-        $optional_id = $this->route('optional');
+        $optional_id = $this->route('optional')->id;
 
         return [
             'name' => [

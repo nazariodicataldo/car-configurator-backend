@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateOptionalSetupRequest;
 use App\Models\Optional;
 use App\Models\OptionalSetup;
 use App\Models\Setup;
+use App\Models\SetupVehicle;
 use App\Models\Vehicle;
 use App\Services\OptionalSetupService;
 use Illuminate\Http\Request;
@@ -49,14 +50,9 @@ class OptionalSetupController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(
-        Request $request,
-        Setup $setup,
-        Vehicle $vehicle,
-        Optional $optional,
-    ) {
+    public function show(Setup $setup, Vehicle $vehicle, Optional $optional)
+    {
         return $this->optional_setup_service->getSingle(
-            $request,
             $vehicle,
             $setup,
             $optional,
@@ -72,12 +68,17 @@ class OptionalSetupController extends Controller
         Setup $setup,
         Optional $optional,
     ) {
-        $optional = $setup
-            ->optionals()
-            ->where('optional_id', $optional->id)
+        $setupVehicle = SetupVehicle::where('setup_id', $setup->id)
+            ->where('vehicle_id', $vehicle->id)
             ->firstOrFail();
 
-        Gate::authorize('update', $optional->pivot);
+        $optionalWithPivot = $setupVehicle
+            ->optionals()
+            ->wherePivot('optional_id', $optional->id)
+            ->withPivot(['price', 'is_included'])
+            ->firstOrFail();
+
+        Gate::authorize('update', $optionalWithPivot->pivot);
 
         return $this->optional_setup_service->update(
             $request,
@@ -92,12 +93,17 @@ class OptionalSetupController extends Controller
      */
     public function destroy(Vehicle $vehicle, Setup $setup, Optional $optional)
     {
-        $optional = $setup
-            ->optionals()
-            ->where('optional_id', $optional->id)
+        /* $setupVehicle = SetupVehicle::where('setup_id', $setup->id)
+            ->where('vehicle_id', $vehicle->id)
             ->firstOrFail();
 
-        Gate::authorize('delete', $optional->pivot);
+        $optionalWithPivot = $setupVehicle
+            ->optionals()
+            ->wherePivot('optional_id', $optional->id)
+            ->withPivot(['price', 'is_included'])
+            ->firstOrFail();
+
+        Gate::authorize('delete', $optionalWithPivot->pivot); */
         return $this->optional_setup_service->delete(
             $vehicle,
             $setup,

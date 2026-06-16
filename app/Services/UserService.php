@@ -68,7 +68,7 @@ class UserService
             true,
             UserResource::collection($users),
             200,
-            'Users successfully fetched',
+            'Utenti caricati con successo',
         );
     }
 
@@ -82,7 +82,7 @@ class UserService
             true,
             new UserResource($user),
             200,
-            'User successfully fetched',
+            'Utente caricato con successo',
         );
     }
 
@@ -90,13 +90,15 @@ class UserService
     {
         $data = $request->validated();
 
-        $user = $user->update($data);
+        $user->update($data);
+
+        $user->refresh();
 
         return $this->apiResponse(
             true,
             new UserResource($user),
             201,
-            'User successfully updated',
+            'Utente modificato con successo',
         );
     }
 
@@ -104,6 +106,6 @@ class UserService
     {
         $user->delete();
 
-        return $this->apiResponse(true, null, 204, 'User successfully deleted');
+        return $this->apiResponse(true, null, 200, 'Utente cancellato con successo');
     }
 }

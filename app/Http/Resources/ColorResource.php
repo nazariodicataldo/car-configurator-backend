@@ -16,12 +16,24 @@ class ColorResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'hexCode' => $this->hex_code,
-            'imgUrl' => $this->img_url,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
+            'isDefault' => (bool) $this->is_default,
+            'frontImageUrl' => $this->whenPivotLoaded(
+                'color_vehicles',
+                fn() => $this->pivot->front_image_url,
+            ),
+            'sideImageUrl' => $this->whenPivotLoaded(
+                'color_vehicles',
+                fn() => $this->pivot->side_image_url,
+            ),
+            'backImageUrl' => $this->whenPivotLoaded(
+                'color_vehicles',
+                fn() => $this->pivot->back_image_url,
+            ),
             'price' => $this->whenPivotLoaded(
                 'color_vehicles',
-                fn () => (float) $this->pivot->price,
+                fn() => (float) $this->pivot->price,
             ),
             'vehicles' => VehicleResource::collection(
                 $this->whenLoaded('vehicles'),

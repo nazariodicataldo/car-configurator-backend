@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Http\Requests\StoreOptionalSetupRequest;
 use App\Http\Requests\UpdateOptionalSetupRequest;
-use App\Http\Resources\CompatibilityRuleResource;
 use App\Http\Resources\OptionalResource;
 use App\Models\CompatibilityRule;
 use App\Models\Optional;
@@ -20,8 +19,10 @@ class OptionalSetupService
 
     public function __construct() {}
 
-    private function getSetupVehicle(Vehicle $vehicle, Setup $setup): SetupVehicle
-    {
+    private function getSetupVehicle(
+        Vehicle $vehicle,
+        Setup $setup,
+    ): SetupVehicle {
         return SetupVehicle::where('setup_id', $setup->id)
             ->where('vehicle_id', $vehicle->id)
             ->firstOrFail();
@@ -50,7 +51,9 @@ class OptionalSetupService
             ->when($column, fn($q) => $q->orderBy($column, $order));
 
         return $perPage || $page
-            ? $query->paginate($perPage ?? 12, ['*'], 'page', $page ?? 1)->withQueryString()
+            ? $query
+                ->paginate($perPage ?? 12, ['*'], 'page', $page ?? 1)
+                ->withQueryString()
             : $query->get();
     }
 
@@ -58,17 +61,21 @@ class OptionalSetupService
     {
         $optionals = $this->filter($request, $vehicle, $setup);
 
-        $rules = CompatibilityRule::whereIn('optional_a_id', $optionals->pluck('id'))
+        $rules = CompatibilityRule::whereIn(
+            'optional_a_id',
+            $optionals->pluck('id'),
+        )
             ->orWhereIn('optional_b_id', $optionals->pluck('id'))
             ->with(['optionalA', 'optionalB'])
             ->get();
 
         return $this->apiResponse(
             true,
-            [
+            /* [
                 'items' => OptionalResource::collection($optionals),
                 'rules' => CompatibilityRuleResource::collection($rules),
-            ],
+            ] */
+            OptionalResource::collection($optionals),
             200,
             'Accessori recuperati con successo',
         );
@@ -133,7 +140,9 @@ class OptionalSetupService
 
         $setupVehicle = $this->getSetupVehicle($vehicle, $setup);
 
-        $setupVehicle->optionals()->updateExistingPivot($optional->id, $validated);
+        $setupVehicle
+            ->optionals()
+            ->updateExistingPivot($optional->id, $validated);
 
         $updated = $setupVehicle
             ->optionals()
@@ -155,6 +164,11 @@ class OptionalSetupService
 
         $setupVehicle->optionals()->detach($optional->id);
 
-        return $this->apiResponse(true, null, 200, 'Accessorio eliminato con successo');
+        return $this->apiResponse(
+            true,
+            null,
+            200,
+            'Accessorio eliminato con successo',
+        );
     }
 }

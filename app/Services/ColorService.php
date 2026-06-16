@@ -7,11 +7,12 @@ use App\Http\Requests\UpdateColorRequest;
 use App\Http\Resources\ColorResource;
 use App\Models\Color;
 use App\Traits\ApiResponse;
+use App\Traits\HasFileUpload;
 use Illuminate\Http\Request;
 
 class ColorService
 {
-    use ApiResponse;
+    use ApiResponse, HasFileUpload;
     /**
      * Create a new class instance.
      */
@@ -65,7 +66,7 @@ class ColorService
             true,
             ColorResource::collection($colors),
             200,
-            'Colors successfully fetched',
+            'Colori caricati con successo',
         );
     }
 
@@ -79,36 +80,100 @@ class ColorService
             true,
             new ColorResource($color),
             200,
-            'Color successfully fetched',
+            'Colore caricato con successo',
         );
     }
 
     public function create(StoreColorRequest $request)
     {
-        $data = $request->validated();
+        $validated = $request->validated();
+        $uploadedPath = null;
 
-        $color = Color::create($data);
+        try {
+            if ($request->hasFile('img')) {
+                $uploadedPath = $this->uploadImage($request, 'colors');
+                $validated['img_url'] = $uploadedPath;
+            }
 
-        return $this->apiResponse(
-            true,
-            new ColorResource($color),
-            201,
-            'Color successfully created',
-        );
+            $color = Color::create($validated);
+
+            return $this->apiResponse(
+                true,
+                new ColorResource($color),
+                201,
+                'Colore creato con successo',
+            );
+        } catch (\Exception $e) {
+            // Se il DB fallisce dopo l'upload, cancella il file
+            if ($uploadedPath) {
+                $this->deleteImage($uploadedPath);
+            }
+            return $this->apiResponse(
+                false,
+                null,
+                500,
+                'Errore durante la creazione',
+            );
+        }
     }
 
     public function update(UpdateColorRequest $request, Color $color)
     {
-        $data = $request->validated();
+        $validated = $request->validated();
+        $uploadedPath = null;
 
-        $color = $color->update($data);
+        try {
+            // Caso 1 — l'utente ha caricato un file nuovo
+            if ($request->hasFile('img')) {
+                // Salvo il vecchio path prima di sovrascrivere
+                $oldPath = $color->img_url;
 
-        return $this->apiResponse(
-            true,
-            new ColorResource($color),
-            201,
-            'Color successfully updated',
-        );
+                $uploadedPath = $this->uploadImage(
+                    $request,
+                    'colors',
+                    $oldPath,
+                );
+                $validated['img_url'] = $uploadedPath;
+                // Caso 2 — l'utente non ha caricato nulla MA ha esplicitamente azzerato il campo
+            } elseif (
+                array_key_exists('img', $validated) &&
+                !$validated['img']
+            ) {
+                $validated['img_url'] = null;
+            }
+
+            $color->update($validated);
+
+            $color->refresh();
+
+            // Solo dopo che il DB ha confermato, cancello il vecchio file
+            if ($request->hasFile('img') && isset($oldPath)) {
+                $this->deleteImage($oldPath);
+            } elseif (
+                array_key_exists('img_url', $validated) &&
+                !$validated['img_url']
+            ) {
+                $this->deleteImage($color->getOriginal('img_url'));
+            }
+
+            return $this->apiResponse(
+                true,
+                new ColorResource($color),
+                201,
+                'Colore modificato con successo',
+            );
+        } catch (\Exception $e) {
+            // Il DB è fallito — cancella solo il file appena caricato, non quello vecchio
+            if ($uploadedPath) {
+                $this->deleteImage($uploadedPath);
+            }
+            return $this->apiResponse(
+                false,
+                null,
+                500,
+                "Errore durante l'aggiornamento",
+            );
+        }
     }
 
     public function delete(Color $color)
@@ -118,8 +183,8 @@ class ColorService
         return $this->apiResponse(
             true,
             null,
-            204,
-            'Color successfully deleted',
+            200,
+            'Colore eliminato con successo',
         );
     }
 }

@@ -22,13 +22,15 @@ class UpdateColorRequest extends FormRequest
      */
     public function rules(): array
     {
+        $color_id = $this->route('color')->id;
+
         return [
             'name' => [
                 'required',
                 'string',
                 'min:3',
                 'max:50',
-                'unique:colors,name',
+                'unique:colors,name,'. $color_id,
             ],
             'hex_code' => ['required', 'hex_color'],
             'img' => ['nullable', 'image', 'max:2048'],

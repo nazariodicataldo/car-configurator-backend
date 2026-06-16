@@ -8,6 +8,8 @@ use App\Http\Resources\VehicleResource;
 use App\Models\Vehicle;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class VehicleService
 {
@@ -36,24 +38,17 @@ class VehicleService
             : 'asc';
 
         $query = Vehicle::query()
-            // Aggiungo il fornitore
-            ->when($request->boolean('withSupplier'), function (
-                $query,
-                $value,
-            ) {
-                if ($value) {
-                    return $query->with('supplier');
-                }
+            // Aggiungo il marchio
+            ->when($request->boolean('withBrand'), function ($query, $value) {
+                return $query->with('brand');
             })
-            // Aggiungo l'utente che ha creato l'ordine
-            ->when($request->boolean('withProduct'), function ($query, $value) {
-                if ($value) {
-                    return $query->with('product');
-                }
+            // Aggiungo l'allestimento
+            ->when($request->boolean('withSetups'), function ($query, $value) {
+                return $query->with('setups');
             })
-            /* Filtro per product_id */
-            ->when($request->query('productId'), function ($query, $productId) {
-                return $query->where('product_id', $productId);
+            // Aggiungo il motore
+            ->when($request->boolean('withEngines'), function ($query, $value) {
+                return $query->with('engines');
             })
             /* Filtro per brand id */
             ->when($request->query('brandId'), function ($query, $brand_id) {
@@ -130,7 +125,22 @@ class VehicleService
     {
         $data = $request->validated();
 
-        $vehicle = Vehicle::create($data);
+        $vehicle = DB::transaction(function () use ($data) {
+            $vehicle = Vehicle::create($data);
+
+            if (!empty($data['engines'])) {
+                $syncData = [];
+                foreach ($data['engines'] as $engine) {
+                    $syncData[$engine['engine_id']] = [
+                        'id' => (string) Str::uuid(),
+                        'price' => $engine['price'],
+                    ];
+                }
+                $vehicle->engines()->sync($syncData);
+            }
+
+            return $vehicle;
+        });
 
         return $this->apiResponse(
             true,
@@ -144,7 +154,20 @@ class VehicleService
     {
         $data = $request->validated();
 
-        $vehicle->update($data);
+        DB::transaction(function () use ($data, $vehicle) {
+            $vehicle->update($data);
+
+            if (isset($data['engines'])) {
+                $syncData = [];
+                foreach ($data['engines'] as $engine) {
+                    $syncData[$engine['engine_id']] = [
+                        'id' => (string) Str::uuid(),
+                        'price' => $engine['price'],
+                    ];
+                }
+                $vehicle->engines()->sync($syncData);
+            }
+        });
 
         $vehicle->refresh();
 
