@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class ColorResource extends JsonResource
 {
@@ -18,18 +19,19 @@ class ColorResource extends JsonResource
             'hexCode' => $this->hex_code,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
+            'imgUrl' => Storage::url($this->img_url),
             'isDefault' => (bool) $this->is_default,
             'frontImageUrl' => $this->whenPivotLoaded(
                 'color_vehicles',
-                fn() => $this->pivot->front_image_url,
+                fn() => Storage::url($this->pivot->front_image_url),
             ),
             'sideImageUrl' => $this->whenPivotLoaded(
                 'color_vehicles',
-                fn() => $this->pivot->side_image_url,
+                fn() => Storage::url($this->pivot->side_image_url),
             ),
             'backImageUrl' => $this->whenPivotLoaded(
                 'color_vehicles',
-                fn() => $this->pivot->back_image_url,
+                fn() => Storage::url($this->pivot->back_image_url),
             ),
             'price' => $this->whenPivotLoaded(
                 'color_vehicles',
