@@ -24,17 +24,17 @@ trait HasFileUpload
         if ($existingPath) {
             $existingName = explode('_', basename($existingPath), 2)[1] ?? null;
             if ($existingName !== $file->getClientOriginalName()) {
-                Storage::disk('public')->delete($existingPath);
+                Storage::delete($existingPath);
             }
         }
 
-        return $file->storeAs($folder, $newPath, 'public');
+        return $file->storeAs($folder, $newPath);
     }
 
     public function deleteImage(?string $path): void
     {
         if ($path) {
-            Storage::disk('public')->delete($path);
+            Storage::delete($path);
         }
     }
 }

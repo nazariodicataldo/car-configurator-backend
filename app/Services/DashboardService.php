@@ -20,7 +20,7 @@ class DashboardService
 
         $min_prev = Configuration::orderBy('total_price', 'asc')->first();
 
-        $latests_three = Configuration::orderBy('created_at')->take(3)->get();
+        $latests_three = Configuration::orderBy('created_at', 'desc')->take(3)->get();
 
         $top_5_vehicles = Configuration::selectRaw('vehicle_id, count(*) ')
             ->groupBy('vehicle_id')
