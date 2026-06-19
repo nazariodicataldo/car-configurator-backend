@@ -19,19 +19,25 @@ class ColorResource extends JsonResource
             'hexCode' => $this->hex_code,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
-            'imgUrl' => Storage::url($this->img_url),
+            'imgUrl' => $this->img_url ? Storage::url($this->img_url) : null,
             'isDefault' => (bool) $this->is_default,
             'frontImageUrl' => $this->whenPivotLoaded(
                 'color_vehicles',
-                fn() => Storage::url($this->pivot->front_image_url),
+                fn() => $this->pivot->front_image_url
+                    ? Storage::url($this->pivot->front_image_url)
+                    : $this->pivot->front_image_url,
             ),
             'sideImageUrl' => $this->whenPivotLoaded(
                 'color_vehicles',
-                fn() => Storage::url($this->pivot->side_image_url),
+                fn() => $this->pivot->side_image_url
+                    ? Storage::url($this->pivot->side_image_url)
+                    : null,
             ),
             'backImageUrl' => $this->whenPivotLoaded(
                 'color_vehicles',
-                fn() => Storage::url($this->pivot->back_image_url),
+                fn() => $this->pivot->back_image_url
+                    ? Storage::url($this->pivot->back_image_url)
+                    : null,
             ),
             'price' => $this->whenPivotLoaded(
                 'color_vehicles',
