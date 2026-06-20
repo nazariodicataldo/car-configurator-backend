@@ -16,11 +16,14 @@ class DashboardService
     {
         $count_records = Configuration::count();
 
-        $max_prev = Configuration::orderBy('total_price', 'desc')->first();
+        $max_prev = Configuration::orderBy('total_price', 'desc')
+            ->with('user')
+            ->first();
 
-        $min_prev = Configuration::orderBy('total_price', 'asc')->first();
-
-        $latests_three = Configuration::orderBy('created_at', 'desc')->take(3)->get();
+        $latests_three = Configuration::orderBy('created_at', 'desc')
+            ->with('user')
+            ->take(3)
+            ->get();
 
         $top_5_vehicles = Configuration::selectRaw('vehicle_id, count(*) ')
             ->groupBy('vehicle_id')
@@ -41,7 +44,6 @@ class DashboardService
             [
                 'count' => $count_records,
                 'max' => new ConfigurationResource($max_prev),
-                'min' => new ConfigurationResource($min_prev),
                 'latests' => ConfigurationResource::collection($latests_three),
                 'topVehicles' => $top_5_vehicles,
             ],
