@@ -12,6 +12,13 @@ class ConfigurationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $color = $this->vehicle?->relationLoaded('colors')
+            ? $this->vehicle->colors->firstWhere('id', $this->color_id)
+            : $this->vehicle
+                ?->colors()
+                ->where('colors.id', $this->color_id)
+                ->first();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -27,7 +34,7 @@ class ConfigurationResource extends JsonResource
             'vehicle' => new VehicleResource($this->vehicle),
             'engine' => new EngineResource($this->engine),
             'setup' => new SetupResource($this->setup),
-            'color' => new ColorResource($this->color),
+            'color' => new ColorResource($color),
             'optionals' => OptionalResource::collection($this->optionals),
         ];
     }
