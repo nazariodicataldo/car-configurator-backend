@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -22,11 +23,19 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $user_id = $this->route('user')->id;
-        return [
+        $user = $this->route('user');
+        $auth_user = Auth::user();
+
+        $rules = [
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
-            'role' => ['sometimes', 'in:user,admin']
         ];
+
+        // Solo gli admin possono cambiare il ruolo, e non il proprio
+        if ($auth_user->id !== $user->id) {
+            $rules['role'] = ['sometimes', 'in:user,admin'];
+        }
+
+        return $rules;
     }
 }
