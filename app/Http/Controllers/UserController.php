@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Services\UserService;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
+    use ApiResponse;
     public function __construct(private UserService $user_service) {}
 
     /**
@@ -45,6 +48,14 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         Gate::authorize('delete', $user);
+        if ($user->id === Auth::id()) {
+            return $this->apiResponse(
+                false,
+                'Non puoi eliminare te stesso',
+                422,
+            );
+        }
+
         return $this->user_service->delete($user);
     }
 }
