@@ -85,6 +85,8 @@ class ColorVehicleService
 
     public function getSingle(Vehicle $vehicle, Color $color)
     {
+
+        //$colorWithPivot = $vehicle->colorWithPivot($color->id);
         $colorWithPivot = $vehicle
             ->colors()
             ->withPivot([

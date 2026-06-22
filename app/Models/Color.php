@@ -16,6 +16,11 @@ class Color extends Model
     {
         return $this->belongsToMany(Vehicle::class)
             ->using(ColorVehicle::class)
-            ->withPivot(['price']);
+            ->withPivot([
+                'price',
+                'front_image_url',
+                'back_image_url',
+                'side_image_url',
+            ]);
     }
 }

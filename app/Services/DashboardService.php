@@ -27,7 +27,7 @@ class DashboardService
 
         $top_5_vehicles = Configuration::selectRaw('vehicle_id, count(*) ')
             ->groupBy('vehicle_id')
-            ->orderByRaw('count(*)')
+            ->orderByRaw('count(*) DESC')
             ->with('vehicle')
             ->take(5)
             ->get();

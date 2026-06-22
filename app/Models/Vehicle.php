@@ -54,19 +54,26 @@ class Vehicle extends Model
             ]);
     }
 
-    /* public function defaultColor()
+    public function colorWithPivot(string $colorId): Color
     {
-        return $this->belongsToMany(Color::class, 'color_vehicles')
-            ->using(ColorVehicle::class)
+        $color = $this->colors()
             ->withPivot([
                 'price',
                 'front_image_url',
-                'back_image_url',
                 'side_image_url',
-            ]);
-            ->wherePivot('color_id', $this->default_color_id);
-        //return $this->belongsTo(Color::class, 'default_color_id');
-    } */
+                'back_image_url',
+            ])
+            ->where('colors.id', $colorId)
+            ->firstOrFail();
+
+        $color->is_default = $color->id === $this->default_color_id;
+
+        if ($color->is_default) {
+            $color->pivot->price = 0;
+        }
+
+        return $color;
+    }
 
     public function configurations(): HasMany
     {
