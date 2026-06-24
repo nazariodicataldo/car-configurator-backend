@@ -22,6 +22,12 @@ class VehicleResource extends JsonResource
                 'createdAt' => $this->created_at,
                 'updatedAt' => $this->updated_at,
                 'brand' => new BrandResource($this->whenLoaded('brand')),
+                /* 'defaultColor' => $this->whenLoaded(
+                    'colors',
+                    fn() => new ColorResource(
+                        $this->colorWithPivot($this->default_color_id),
+                    ),
+                ), */
                 'defaultColor' => new ColorResource(
                     $this->colors->firstWhere('id', $this->default_color_id),
                 ),

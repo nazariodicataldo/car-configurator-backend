@@ -65,12 +65,7 @@ class ColorVehicleService
         $data = $this->filter($request, $vehicle);
 
         $data->transform(function ($color) use ($vehicle) {
-            if ($color->id === $vehicle->default_color_id) {
-                $color->is_default = true;
-                $color->pivot->price = 0;
-            } else {
-                $color->is_default = false;
-            }
+            $color->is_default = $color->id === $vehicle->default_color_id;
 
             return $color;
         });
@@ -85,25 +80,7 @@ class ColorVehicleService
 
     public function getSingle(Vehicle $vehicle, Color $color)
     {
-
-        //$colorWithPivot = $vehicle->colorWithPivot($color->id);
-        $colorWithPivot = $vehicle
-            ->colors()
-            ->withPivot([
-                'price',
-                'front_image_url',
-                'side_image_url',
-                'back_image_url',
-            ])
-            ->wherePivot('color_id', $color->id)
-            ->firstOrFail();
-
-        if ($colorWithPivot->id === $vehicle->default_color_id) {
-            $colorWithPivot->is_default = true;
-            $colorWithPivot->pivot->price = 0;
-        } else {
-            $colorWithPivot->is_default = false;
-        }
+        $colorWithPivot = $vehicle->colorWithPivot($color->id);
 
         return $this->apiResponse(
             true,

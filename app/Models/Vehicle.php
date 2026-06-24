@@ -68,10 +68,6 @@ class Vehicle extends Model
 
         $color->is_default = $color->id === $this->default_color_id;
 
-        if ($color->is_default) {
-            $color->pivot->price = 0;
-        }
-
         return $color;
     }
 

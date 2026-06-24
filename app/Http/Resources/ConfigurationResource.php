@@ -12,28 +12,6 @@ class ConfigurationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        /* 'color' => $this->when($this->color_id, function () {
-    if ($this->relationLoaded('vehicle') && $this->vehicle->relationLoaded('colors')) {
-        $color = $this->vehicle->colors->firstWhere('id', $this->color_id);
-    } else {
-        $color = $this->vehicle->colorWithPivot($this->color_id);
-    }
-
-    if (!$color) return null;
-
-    $color->is_default = $color->id === $this->vehicle->default_color_id;
-    if ($color->is_default) $color->pivot->price = 0;
-
-    return new ColorResource($color);
-}), */
-
-        $color = $this->vehicle?->relationLoaded('colors')
-            ? $this->vehicle->colors->firstWhere('id', $this->color_id)
-            : $this->vehicle
-                ?->colors()
-                ->where('colors.id', $this->color_id)
-                ->first();
-
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -49,7 +27,28 @@ class ConfigurationResource extends JsonResource
             'vehicle' => new VehicleResource($this->vehicle),
             'engine' => new EngineResource($this->engine),
             'setup' => new SetupResource($this->setup),
-            'color' => new ColorResource($color),
+            'color' => $this->when($this->color_id, function () {
+                if (
+                    $this->relationLoaded('vehicle') &&
+                    $this->vehicle->relationLoaded('colors')
+                ) {
+                    $color = $this->vehicle->colors->firstWhere(
+                        'id',
+                        $this->color_id,
+                    );
+                } else {
+                    $color = $this->vehicle->colorWithPivot($this->color_id);
+                }
+
+                if (!$color) {
+                    return null;
+                }
+
+                $color->is_default =
+                    $color->id === $this->vehicle->default_color_id;
+
+                return new ColorResource($color);
+            }),
             'optionals' => OptionalResource::collection($this->optionals),
         ];
     }

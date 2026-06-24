@@ -64,6 +64,10 @@ class EmailVerificationController extends Controller
             }
         }
 
+        $email_verify_page = '/email-verify';
+        // Frontend URL + pagina di verifica email
+        $redirect_url = $frontend_url . $email_verify_page;
+
         return $this->redirectFrontend(
             $frontend_url,
             'success',
