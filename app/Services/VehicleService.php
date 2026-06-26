@@ -83,6 +83,18 @@ class VehicleService
     public function getAll(Request $request)
     {
         $vehicles = $this->filter($request);
+
+        if ($vehicles instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $vehicles->setCollection(
+                    VehicleResource::collection($vehicles->items())->collection,
+                ),
+                200,
+                'Veicoli recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             VehicleResource::collection($vehicles),

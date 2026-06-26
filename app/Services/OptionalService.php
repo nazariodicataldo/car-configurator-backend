@@ -71,6 +71,18 @@ class OptionalService
     public function getAll(Request $request)
     {
         $optional = $this->filter($request);
+
+        if ($optional instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $optional->setCollection(
+                    OptionalResource::collection($optional->items())->collection,
+                ),
+                200,
+                'Optionals recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             OptionalResource::collection($optional),

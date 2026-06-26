@@ -69,6 +69,18 @@ class OptionalSetupService
             ->with(['optionalA', 'optionalB'])
             ->get();
 
+        if ($optionals instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $optionals->setCollection(
+                    OptionalResource::collection($optionals->items())
+                        ->collection,
+                ),
+                200,
+                'Accessori recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             /* [

@@ -91,11 +91,23 @@ class EngineService
     public function getAll(Request $request)
     {
         $engines = $this->filter($request);
+
+        if ($engines instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $engines->setCollection(
+                    EngineResource::collection($engines->items())->collection,
+                ),
+                200,
+                'Motori recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             EngineResource::collection($engines),
             200,
-            'Motori caricati con successo',
+            'Motori recuperati con successo',
         );
     }
 
@@ -109,7 +121,7 @@ class EngineService
             true,
             new EngineResource($engine),
             200,
-            'Motore caricato con successo',
+            'Motore recuperato con successo',
         );
     }
 

@@ -70,11 +70,22 @@ class ColorVehicleService
             return $color;
         });
 
+        if ($data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $data->setCollection(
+                    ColorResource::collection($data->items())->collection,
+                ),
+                200,
+                'Colori recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             ColorResource::collection($data),
             200,
-            'Colors successfully fetched',
+            'Colori recuperati con successo',
         );
     }
 
@@ -86,7 +97,7 @@ class ColorVehicleService
             true,
             new ColorResource($colorWithPivot),
             200,
-            'Color successfully fetched',
+            'Colore recuperati con successo',
         );
     }
 
@@ -156,7 +167,7 @@ class ColorVehicleService
             true,
             new ColorResource($color),
             201,
-            'Color successfully created',
+            'Colore creato con successo',
         );
     }
 

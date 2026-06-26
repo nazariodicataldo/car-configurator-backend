@@ -62,6 +62,18 @@ class SetupService
     public function getAll(Request $request)
     {
         $setups = $this->filter($request);
+
+        if ($setups instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $setups->setCollection(
+                    SetupResource::collection($setups->items())->collection,
+                ),
+                200,
+                'Allestimenti recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             SetupResource::collection($setups),

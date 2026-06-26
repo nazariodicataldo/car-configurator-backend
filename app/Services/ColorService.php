@@ -62,11 +62,23 @@ class ColorService
     public function getAll(Request $request)
     {
         $colors = $this->filter($request);
+
+        if ($colors instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $colors->setCollection(
+                    ColorResource::collection($colors->items())->collection,
+                ),
+                200,
+                'Colori recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             ColorResource::collection($colors),
             200,
-            'Colori caricati con successo',
+            'Colori recuperati con successo',
         );
     }
 
@@ -80,7 +92,7 @@ class ColorService
             true,
             new ColorResource($color),
             200,
-            'Colore caricato con successo',
+            'Colore recuperato con successo',
         );
     }
 

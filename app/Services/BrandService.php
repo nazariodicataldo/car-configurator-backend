@@ -67,6 +67,18 @@ class BrandService
     public function getAll(Request $request)
     {
         $brands = $this->filter($request);
+
+        if ($brands instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $brands->setCollection(
+                    BrandResource::collection($brands->items())->collection,
+                ),
+                200,
+                'Marchi recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             BrandResource::collection($brands),

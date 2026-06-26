@@ -1,25 +1,21 @@
 <?php
 namespace App\Traits;
 
-use function PHPUnit\Framework\isNull;
-
 trait ApiResponse
 {
-    /* Helper per generare delle response Json */
     public static function apiResponse(
-        /* Utile sia per risposte di successo che errori */
         bool $success,
         mixed $dataOrErrors = null,
         int $code = 200,
         ?string $message = null,
     ) {
-        //Verifico se l'utente vuole la paginazione
         $paginator = null;
+        $data = $dataOrErrors;
+
         if (
             $success &&
             $dataOrErrors instanceof \Illuminate\Pagination\LengthAwarePaginator
         ) {
-            // mi prendo le proprietà con la paginazione
             $paginator = [
                 'totalItems' => $dataOrErrors->total(),
                 'page' => $dataOrErrors->currentPage(),
@@ -28,17 +24,19 @@ trait ApiResponse
                 'hasNextPage' => $dataOrErrors->hasMorePages(),
                 'hasPrevPage' => !$dataOrErrors->onFirstPage(),
             ];
+
+            // Sostituisco il paginator con i soli items
+            $data = $dataOrErrors->items();
         }
 
         $payload = [
             'success' => $success,
-            $success ? 'data' : 'errors' => $dataOrErrors,
+            $success ? 'data' : 'errors' => $data,
             'timestamp' => now()->format('Y-m-d H:i:s'),
         ];
 
-        // se c'è la paginazione, la aggiungo al payload
         if ($paginator !== null) {
-            $payload = [...$payload, $paginator];
+            $payload['pagination'] = $paginator;
         }
 
         if ($message) {
@@ -48,5 +46,3 @@ trait ApiResponse
         return response()->json($payload, $code);
     }
 }
-
-?>

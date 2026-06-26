@@ -7,7 +7,7 @@ use App\Http\Requests\UpdateConfigurationRequest;
 use App\Http\Resources\ConfigurationResource;
 use App\Models\Configuration;
 use App\Models\Optional;
-use App\Models\SetupVehicle;
+use App\Models\Setupconfiguration;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,8 +46,8 @@ class ConfigurationService
                 return $query->with('user');
             })
             // Carico il veicolo
-            ->when($request->boolean('withVehicle'), function ($query) {
-                return $query->with('vehicle');
+            ->when($request->boolean('withconfiguration'), function ($query) {
+                return $query->with('configuration');
             })
             // Carico il motore
             ->when($request->boolean('withEngine'), function ($query) {
@@ -78,12 +78,12 @@ class ConfigurationService
             ->when($request->query('userId'), function ($query, $user_id) {
                 return $query->where('user_id', $user_id);
             })
-            /* Filtro per vehicle id */
-            ->when($request->query('vehicleId'), function (
+            /* Filtro per configuration id */
+            ->when($request->query('configurationId'), function (
                 $query,
-                $vehicle_id,
+                $configuration_id,
             ) {
-                return $query->where('vehicle_id', $vehicle_id);
+                return $query->where('configuration_id', $configuration_id);
             })
             /* Filtro per engine id */
             ->when($request->query('engineId'), function ($query, $engine_id) {
@@ -124,6 +124,22 @@ class ConfigurationService
     public function getAll(Request $request)
     {
         $configurations = $this->filter($request);
+
+        if (
+            $configurations instanceof
+            \Illuminate\Pagination\LengthAwarePaginator
+        ) {
+            return $this->apiResponse(
+                true,
+                $configurations->setCollection(
+                    ConfigurationResource::collection($configurations->items())
+                        ->collection,
+                ),
+                200,
+                'Veicoli recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             ConfigurationResource::collection($configurations),
@@ -137,7 +153,7 @@ class ConfigurationService
         // Carico tutte le relazioni
         $configuration->load([
             'user',
-            'vehicle',
+            'configuration',
             'engine',
             'setup',
             'color',
@@ -167,19 +183,22 @@ class ConfigurationService
                 $optionals = $data['optionals_id'];
                 $syncData = []; // Array temporaneo per accumulare i dati
 
-                // Recupero il SetupVehicle una volta sola fuori dal loop
-                $setupVehicle = SetupVehicle::where(
+                // Recupero il Setupconfiguration una volta sola fuori dal loop
+                $setupconfiguration = Setupconfiguration::where(
                     'setup_id',
                     $configuration->setup_id,
                 )
-                    ->where('vehicle_id', $configuration->vehicle_id)
+                    ->where(
+                        'configuration_id',
+                        $configuration->configuration_id,
+                    )
                     ->firstOrFail();
 
                 foreach ($optionals as $opt => $opt_id) {
                     $optional = Optional::findOrFail($opt_id);
 
                     // Mi prendo il record dalla pivot tra setup e optional per ottenere prezzo e is_included
-                    $optionalSetup = $setupVehicle
+                    $optionalSetup = $setupconfiguration
                         ->optionals()
                         ->withPivot(['price', 'is_included'])
                         ->where('optionals.id', $opt_id)

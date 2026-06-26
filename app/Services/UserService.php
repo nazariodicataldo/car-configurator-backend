@@ -64,11 +64,23 @@ class UserService
     public function getAll(Request $request)
     {
         $users = $this->filter($request);
+
+        if ($users instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $users->setCollection(
+                    UserResource::collection($users->items())->collection,
+                ),
+                200,
+                'Utenti recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             UserResource::collection($users),
             200,
-            'Utenti caricati con successo',
+            'Utenti recuperati con successo',
         );
     }
 
@@ -82,7 +94,7 @@ class UserService
             true,
             new UserResource($user),
             200,
-            'Utente caricato con successo',
+            'Utente recuperato con successo',
         );
     }
 
@@ -106,6 +118,11 @@ class UserService
     {
         $user->delete();
 
-        return $this->apiResponse(true, null, 200, 'Utente cancellato con successo');
+        return $this->apiResponse(
+            true,
+            null,
+            200,
+            'Utente cancellato con successo',
+        );
     }
 }

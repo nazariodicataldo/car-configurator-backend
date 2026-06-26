@@ -55,6 +55,18 @@ class EngineVehicleService
     public function getAll(Request $request, Vehicle $vehicle)
     {
         $data = $this->filter($request, $vehicle);
+
+        if ($data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $data->setCollection(
+                    EngineResource::collection($data->items())->collection,
+                ),
+                200,
+                'Motori recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             EngineResource::collection($data),

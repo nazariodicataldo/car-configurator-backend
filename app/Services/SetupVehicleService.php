@@ -55,6 +55,18 @@ class SetupVehicleService
     public function getAll(Request $request, Vehicle $vehicle)
     {
         $data = $this->filter($request, $vehicle);
+
+        if ($data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $data->setCollection(
+                    SetupResource::collection($data->items())->collection,
+                ),
+                200,
+                'Allestimenti recuperati con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             SetupResource::collection($data),
