@@ -76,7 +76,8 @@ class OptionalService
             return $this->apiResponse(
                 true,
                 $optional->setCollection(
-                    OptionalResource::collection($optional->items())->collection,
+                    OptionalResource::collection($optional->items())
+                        ->collection,
                 ),
                 200,
                 'Optionals recuperati con successo',

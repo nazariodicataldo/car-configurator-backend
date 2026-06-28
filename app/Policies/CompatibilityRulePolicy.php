@@ -6,7 +6,7 @@ use App\Models\CompatibilityRule;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class CompatibiltyRulePolicy
+class CompatibilityRulePolicy
 {
     /**
      * Determine whether the user can create models.

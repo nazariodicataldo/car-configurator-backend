@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\StoreOptionalSetupRequest;
 use App\Http\Requests\UpdateOptionalSetupRequest;
+use App\Http\Resources\CompatibilityRuleResource;
 use App\Http\Resources\OptionalResource;
 use App\Models\CompatibilityRule;
 use App\Models\Optional;
@@ -83,11 +84,11 @@ class OptionalSetupService
 
         return $this->apiResponse(
             true,
-            /* [
+            [
                 'items' => OptionalResource::collection($optionals),
                 'rules' => CompatibilityRuleResource::collection($rules),
-            ] */
-            OptionalResource::collection($optionals),
+            ],
+            /* OptionalResource::collection($optionals), */
             200,
             'Accessori recuperati con successo',
         );

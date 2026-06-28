@@ -21,13 +21,22 @@ class CompatibilityRuleService
         string $optional_a_id,
         string $optional_b_id,
     ): bool {
-        return CompatibilityRule::where(function ($q) use ($optional_a_id, $optional_b_id) {
-            $q->where('optional_a_id', $optional_a_id)
-              ->where('optional_b_id', $optional_b_id);
-        })->orWhere(function ($q) use ($optional_a_id, $optional_b_id) {
-            $q->where('optional_a_id', $optional_b_id)
-              ->where('optional_b_id', $optional_a_id);
-        })->exists();
+        return CompatibilityRule::where(function ($q) use (
+            $optional_a_id,
+            $optional_b_id,
+        ) {
+            $q->where('optional_a_id', $optional_a_id)->where(
+                'optional_b_id',
+                $optional_b_id,
+            );
+        })
+            ->orWhere(function ($q) use ($optional_a_id, $optional_b_id) {
+                $q->where('optional_a_id', $optional_b_id)->where(
+                    'optional_b_id',
+                    $optional_a_id,
+                );
+            })
+            ->exists();
     }
 
     private function filter(Request $request)
@@ -49,8 +58,9 @@ class CompatibilityRuleService
             : 'asc';
 
         $query = CompatibilityRule::query()
+            ->with(['optionalA', 'optionalB'])
             /* Filtro per nome */
-            ->when($request->query('optional_id'), function (
+            ->when($request->query('optionalId'), function (
                 $query,
                 $optional_id,
             ) {
@@ -76,28 +86,37 @@ class CompatibilityRuleService
     {
         $rules = $this->filter($request);
 
+        if ($rules instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+            return $this->apiResponse(
+                true,
+                $rules->setCollection(
+                    CompatibilityRuleResource::collection($rules->items())
+                        ->collection,
+                ),
+                200,
+                'Regole recuperate con successo',
+            );
+        }
+
         return $this->apiResponse(
             true,
             CompatibilityRuleResource::collection($rules),
             200,
-            'Rules successfully fetched',
+            'Regole recuperate con successo',
         );
     }
-
-    
 
     public function create(StoreCompatibilityRuleRequest $request)
     {
         $data = $request->validated();
 
-        
         // Verifico se l'utente ha passato due optional_id diversi
         if ($data['optional_a_id'] === $data['optional_b_id']) {
             return $this->apiResponse(
                 false,
                 null,
                 422,
-                'Optional ids must be different',
+                'Gli optionals devono essere diversi',
             );
         }
 
@@ -108,7 +127,7 @@ class CompatibilityRuleService
                 $data['optional_b_id'],
             )
         ) {
-            return $this->apiResponse(false, null, 422, 'Rule already exists');
+            return $this->apiResponse(false, null, 422, 'Regola già esistente');
         }
 
         $rule = CompatibilityRule::create($data);
@@ -117,7 +136,7 @@ class CompatibilityRuleService
             true,
             new CompatibilityRuleResource($rule),
             201,
-            'Rule successfully created',
+            'Regola creata con successo',
         );
     }
 
@@ -125,6 +144,11 @@ class CompatibilityRuleService
     {
         $rule->delete();
 
-        return $this->apiResponse(true, null, 204, 'Rule successfully deleted');
+        return $this->apiResponse(
+            true,
+            null,
+            200,
+            'Regola rimossa con successo',
+        );
     }
 }

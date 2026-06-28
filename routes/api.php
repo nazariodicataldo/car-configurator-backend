@@ -49,6 +49,11 @@ Route::apiResource('vehicles', VehicleController::class)->only([
 Route::apiResource('brands', BrandController::class)->only(['index', 'show']);
 Route::apiResource('engines', EngineController::class)->only(['index', 'show']);
 Route::apiResource('setups', SetupController::class)->only(['index', 'show']);
+
+Route::controller(CompatibilityRuleController::class)->group(function () {
+    Route::get('optionals/rules', 'index');
+});
+
 Route::apiResource('optionals', OptionalController::class)->only([
     'index',
     'show',
@@ -62,10 +67,6 @@ Route::apiResource('configurations', ConfigurationController::class)->only([
 Route::controller(EngineVehicleController::class)->group(function () {
     Route::get('vehicles/{vehicle}/engines', 'index');
     Route::get('vehicles/{vehicle}/engines/{engine}', 'show')->scopeBindings();
-});
-
-Route::controller(CompatibilityRuleController::class)->group(function () {
-    Route::get('optionals/rules', 'index');
 });
 
 Route::controller(OptionalSetupController::class)->group(function () {
