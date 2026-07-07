@@ -15,7 +15,12 @@ class EmailVerificationController extends Controller
 
     public function verify(Request $request)
     {
-        $frontend_url = Config::get('app.frontend_url');
+        $from_mobile = $request->boolean('from_mobile');
+
+        // Verifico se la richiesta viene dall'app mobile o dal web
+        $frontend_url = $from_mobile
+            ? Config::get('app.mobile_url')
+            : Config::get('app.frontend_url');
 
         $user = User::find($request->route('id'));
 
@@ -69,7 +74,7 @@ class EmailVerificationController extends Controller
         $redirect_url = $frontend_url . $email_verify_page;
 
         return $this->redirectFrontend(
-            $frontend_url,
+            $redirect_url,
             'success',
             'Email verified successfully.',
         );

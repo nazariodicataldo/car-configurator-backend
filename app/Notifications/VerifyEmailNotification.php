@@ -6,16 +6,20 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 
-class VerifyEmailNotification extends VerifyEmail {
+class VerifyEmailNotification extends VerifyEmail
+{
     protected function verificationUrl($notifiable): string
     {
         return URL::temporarySignedRoute(
             'api.verification.verify',
-            Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
+            Carbon::now()->addMinutes(
+                Config::get('auth.verification.expire', 60),
+            ),
             [
                 'id' => $notifiable->getKey(),
                 'hash' => sha1($notifiable->getEmailForVerification()),
-            ]
+                'from_mobile' => $notifiable->registered_from_mobile ?? false,
+            ],
         );
     }
 }

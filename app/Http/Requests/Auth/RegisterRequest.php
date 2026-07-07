@@ -33,6 +33,7 @@ class RegisterRequest extends FormRequest
                 'max:255',
                 'unique:users,email',
             ],
+            'registered_from_mobile' => ['sometimes', 'boolean'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }

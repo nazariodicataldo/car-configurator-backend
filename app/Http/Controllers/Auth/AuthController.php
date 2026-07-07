@@ -32,7 +32,7 @@ class AuthController extends Controller
             true,
             new UserResource($user),
             201,
-            'Registration successfully completed.',
+            'Registrazione completata con successo',
         );
     }
 
@@ -41,11 +41,11 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         if (!Auth::attempt($credentials)) {
-            return $this->apiResponse(false, null, 401, 'Invalid credentials.');
+            return $this->apiResponse(false, null, 401, 'Credenziali non valide');
         }
 
         if (!Auth::user()->hasVerifiedEmail()) {
-            return $this->apiResponse(false, null, 422, 'Email not verified.');
+            return $this->apiResponse(false, null, 422, 'Email non verificata');
         }
 
         $user = Auth::user();
@@ -58,7 +58,7 @@ class AuthController extends Controller
                 'token' => $token,
             ],
             200,
-            'Login successfully performed.',
+            'Accesso effettuato con successo',
         );
     }
 
@@ -79,7 +79,7 @@ class AuthController extends Controller
             true,
             new UserResource(Auth::user()->load('configurations')),
             200,
-            'User successfully fetched',
+            'Utente caricato con successo',
         );
     }
 }
