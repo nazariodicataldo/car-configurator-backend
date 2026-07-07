@@ -24,6 +24,8 @@ class AuthController extends Controller
             'last_name' => $data['last_name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'registered_from_mobile' =>
+                $data['registered_from_mobile'] ?? false,
         ]);
 
         event(new Registered($user));
@@ -41,7 +43,12 @@ class AuthController extends Controller
         $credentials = $request->validated();
 
         if (!Auth::attempt($credentials)) {
-            return $this->apiResponse(false, null, 401, 'Credenziali non valide');
+            return $this->apiResponse(
+                false,
+                null,
+                401,
+                'Credenziali non valide',
+            );
         }
 
         if (!Auth::user()->hasVerifiedEmail()) {
