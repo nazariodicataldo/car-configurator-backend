@@ -54,7 +54,11 @@ class EmailVerificationController extends Controller
             if ($request->expectsJson()) {
                 return $this->apiResponse(true, null, 200, $message);
             }
-            return $this->redirectFrontend($frontend_url, 'success', $message);
+            return $this->redirectFrontend(
+                $frontend_url,
+                'already_verified',
+                $message,
+            );
         }
 
         if ($user->markEmailAsVerified()) {
